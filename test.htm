@@ -5,11 +5,27 @@
 </head>
 
 <body>
-    <script type="text/javascript">
-        $$().test();
-    </script>
 
-    <div id="test">test</div>
+    <input type="text" name="a"></input>
+    <input type="text" name="b"></input>
+    <button id="showobj" name="c">show object</button>
+    <div id="test">null</div>
+
+    <script type="text/javascript">
+        var person = {
+            name: "ryan"
+        };
+
+        var btn = document.querySelector('button#showobj');
+        btn.onclick = function() {
+            var t = document.querySelector('#test');
+            t.innerHTML = person.name;
+        }
+
+        var bindperson = $$(person);
+        $$('[name=a]').bind(bindperson.name);
+        $$('[name=b]').bind(bindperson.name);
+    </script>
 </body>
 
 </html>
