@@ -3,10 +3,10 @@ var _$$ = null;
 var $$ = document.koolic = function(selector) {
     if (selector != null && typeof selector === 'string' && selector.length > 0) {
         var elements = document.querySelectorAll(selector);
-        if (elements.length == 1) { return koolelem(elements[0]); } else {
+        if (elements.length == 1) { return _createKoolicElement(elements[0]); } else {
             var kools = [];
             for (var i = 0; i < elements.length; i++) {
-                kools.push(koolelem(elements[i]));
+                kools.push(_createKoolicElement(elements[i]));
             }
             return kools;
         }
@@ -39,7 +39,8 @@ var $$ = document.koolic = function(selector) {
                 }
                 setTimeout(_$$._checkBound, 5);
             },
-            _boundElems: []
+            _boundElems: [],
+            _koolObjs: []
         }
     }
 
@@ -48,7 +49,13 @@ var $$ = document.koolic = function(selector) {
     return _$$;
 };
 
-function koolobj(object) {
+var koolobj = function(object) {
+    for (var i = 0; i < _$$._koolObjs.length; i++) {
+        if (_$$._koolObjs[i]._obj == object) {
+            return _$$._koolObjs[i];
+        }
+    }
+
     var ko = {
         _obj: object
     };
@@ -65,10 +72,12 @@ function koolobj(object) {
         }
     }
 
-    return ko;
-}
+    _$$._koolObjs.push(ko);
 
-function koolbindable(object, property) {
+    return ko;
+};
+
+koolbindable = function(object, property) {
     var kb = {
         _name: property,
         _obj: object,
@@ -81,6 +90,11 @@ function koolbindable(object, property) {
                     var element = this._notify[i].element;
                     if (element instanceof HTMLInputElement && element.type == 'text') {
                         element.value = this.value;
+                    } else if (element instanceof HTMLSelectElement) {
+                        //for(var s=0;s<element.options.length)
+                        element.value = this.value;
+                        console.log(this.value + ' ' + element.value);
+
                     } else if (element instanceof HTMLElement) {
                         element.innerHTML = this.value;
                     }
@@ -97,9 +111,12 @@ function koolbindable(object, property) {
     _$$._boundObjs.push(kb);
 
     return kb;
-}
+};
 
-function koolelem(element) {
+
+var _ke = {};
+
+function _createKoolicElement(element) {
     var ke = {
         element: element,
         hide: function() {
@@ -112,6 +129,15 @@ function koolelem(element) {
         },
         bind: function(bindable) {
             if (element instanceof HTMLInputElement && element.type == 'text') {
+                element.value = bindable.value;
+                var that = this;
+                element.addEventListener("input", function(event) {
+                    for (var i = 0; i < that._boundObjs.length; i++) {
+                        var bindable = that._boundObjs[i];
+                        bindable.value = element.value;
+                    }
+                });
+            } else if (element instanceof HTMLSelectElement) {
                 element.value = bindable.value;
                 var that = this;
                 element.addEventListener("input", function(event) {
@@ -140,10 +166,12 @@ function koolelem(element) {
 
     };
 
+
+
     _$$._boundElems.push(ke);
 
     return ke;
-}
+};
 
 
 document.koolic();

@@ -1,0 +1,34 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+    <input id="a" type="text" name="a"></input>
+    <input id="b" type="text" name="b"></input>
+    <div>Hello <span id="test">null</span></div>
+
+    <script type="text/javascript">
+        var person = {
+            name: "ryan"
+        };
+
+        document.getElementById('test').innerHTML = person.name;
+        document.getElementById('a').value = person.name;
+        document.getElementById('b').value = person.name;
+
+        document.getElementById('a').onchange = function() {
+            person.name = document.getElementById('a').value;
+            document.getElementById('b').value = person.name;
+            document.getElementById('test').innerHTML = person.name;
+        }
+        document.getElementById('b').onchange = function() {
+            person.name = document.getElementById('b').value;
+            document.getElementById('a').value = person.name;
+            document.getElementById('test').innerHTML = person.name;
+        }
+    </script>
+</body>
+
+</html>

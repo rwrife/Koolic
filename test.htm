@@ -8,18 +8,24 @@
 
     <input type="text" name="a"></input>
     <input type="text" name="b"></input>
-    <button id="showobj" name="c">show object</button>
-    <div id="test">null</div>
+    <select name="age">
+        <option value="13">13</option>
+        <option value="21">21</option>
+        <option value="25">25</option>
+    </select>
+    <div>Hello <span id="test">null</span> you are <span id="testage">null</span></div>
 
     <script type="text/javascript">
         var person = {
-            name: "ryan"
+            name: "ryan",
+            age: "21"
         };
 
-        var bindperson = $$(person);
-        $$('[name=a]').bind(bindperson.name);
-        $$('[name=b]').bind(bindperson.name);
-        $$('#test').bind(bindperson.name);
+        $$('[name=a]').bind($$(person).name);
+        $$('[name=b]').bind($$(person).name);
+        $$('#test').bind($$(person).name);
+        $$('[name=age]').bind($$(person).age);
+        $$('#testage').bind($$(person).age);
     </script>
 </body>
 
