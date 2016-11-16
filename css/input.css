@@ -1,0 +1,83 @@
+    .input-field {
+        font-family: "Open Sans";
+        text-size-adjust: 100%;
+        line-height: 18px;
+        clear: both;
+        float: none;
+        cursor: pointer;
+        position: relative;
+        min-width: 20px;
+    }
+    
+    .input-field div {
+        font-size: 18px;
+        font-weight: 300;
+    }
+    
+    .input-field .label {
+        position: absolute;
+        color: #999;
+        display: none;
+    }
+    
+    .input-field .label.hasvalue {
+        position: absolute;
+        color: #999;
+        display: block;
+        text-align: top;
+    }
+    
+    .input-field .text {
+        min-width: 20px;
+    }
+    
+    .input-field * {
+        display: inline-block;
+        font-family: "Open Sans";
+        float: left;
+    }
+    
+    .input-field button {
+        height: 18px;
+        padding: 0 1px 0 1px;
+        margin: 0 3px 0 3px;
+        text-transform: uppercase;
+        border: none;
+        background: none;
+        font-size: 11px;
+        cursor: pointer;
+    }
+    
+    .input-field button.confirm {
+        color: #12a5ff;
+        display: none;
+    }
+    
+    .input-field button.cancel,
+    .input-field button.edit {
+        color: #999;
+    }
+    
+    .input-field button.cancel {
+        display: none;
+    }
+    
+    .input-field button.cancel:hover {
+        color: red;
+    }
+    
+    .input-field button.edit {
+        display: none;
+    }
+    
+    .input-field:hover button.edit {
+        display: block;
+    }
+    
+    .input-field.changed button.confirm,
+    .input-field.changed button.cancel {
+        display: block;
+    }
+    .input-field.changed button.edit {
+        display: none;
+    }

@@ -1,0 +1,82 @@
+body,
+.content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.slider {
+    width: 250px;
+    border-right: 1px #ccc solid;
+    display: block;
+    height: 100%;
+    font-family: "Open Sans";
+    float: left;
+    overflow: hidden;
+}
+
+.slider>.topbar {
+    width: 100%;
+    display: block;
+    clear: both;
+    height: 44px;
+    border-bottom: 1px #ccc solid;
+    text-align: center;
+    line-height: 44px;
+}
+
+.slider>.topbar>* {
+    width: 50%;
+    text-align: center;
+    display: inline-block;
+    font-weight: 300;
+    color: #666;
+    font-size: 22px;
+}
+
+.slider>.topbar>.back,
+.slider>.topbar>.action {
+    width: 20%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.slider>.topbar>.action {
+    text-align: right;
+}
+
+.slider>.panel-root {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.slider>.panel-root>.panel {
+    box-sizing: border-box;
+    padding: 10px;
+    height: 100%;
+    width: 100%;
+    display: none;
+    border: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.slider>.panel-root>.panel[active=false] {
+    display: none;
+}
+
+.slider>.panel-root>.panel[active=true] {
+    display: block;
+    left: 0;
+    top: 0;
+}
+
+.slider>.panel-root>.panel.animating {
+    border-right: 1px #ccc solid;
+    display: block;
+}
