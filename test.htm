@@ -16,15 +16,10 @@
             name: "ryan"
         };
 
-        var btn = document.querySelector('button#showobj');
-        btn.onclick = function() {
-            var t = document.querySelector('#test');
-            t.innerHTML = person.name;
-        }
-
         var bindperson = $$(person);
         $$('[name=a]').bind(bindperson.name);
         $$('[name=b]').bind(bindperson.name);
+        $$('#test').bind(bindperson.name);
     </script>
 </body>
 

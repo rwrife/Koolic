@@ -75,15 +75,17 @@ function koolbindable(object, property) {
         _oldval: object[property],
         value: object[property],
         _onchange: function(oldval, newval) {
+
             if (this._notify && this._notify.length > 0) {
                 for (var i = 0; i < this._notify.length; i++) {
                     var element = this._notify[i].element;
                     if (element instanceof HTMLInputElement && element.type == 'text') {
                         element.value = this.value;
+                    } else if (element instanceof HTMLElement) {
+                        element.innerHTML = this.value;
                     }
                 }
             }
-
 
             if (this && this.onchange) {
                 this.onchange(oldval, newval);
@@ -118,7 +120,10 @@ function koolelem(element) {
                         bindable.value = element.value;
                     }
                 });
+            } else if (element instanceof HTMLElement) {
+                element.innerHTML = bindable.value;
             }
+
             this._boundObjs.push(bindable);
             bindable._notify.push(this);
             return true;
