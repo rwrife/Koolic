@@ -224,7 +224,7 @@ function KoolicBindable(object, property) {
 
         if (!(koolicObj instanceof KoolicBindable)) return false;
 
-        this.value = koolicObj.value;
+        this.setValue(koolicObj.value);
         _notify.push(koolicObj);
         if (!koolicObj.isBound(this)) {
             koolicObj.bind(this);
