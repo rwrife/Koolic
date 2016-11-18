@@ -15,13 +15,18 @@
         if (window.koolic._boundObjs != null && window.koolic._boundObjs.length > 0) {
             for (var i = 0; i < window.koolic._boundObjs.length; i++) {
                 var obj = window.koolic._boundObjs[i];
-                obj.validateObject();
+                if (obj.target instanceof KoolicElement) {
+                    obj.bindable.setValue(obj.target.el[obj.targetProperty]);
+                } else {
+                    obj.bindable.setValue(obj.target[obj.targetProperty]);
+                }
+                obj.bindable.validateObject();
             }
         }
-        setTimeout(koolic._checkBound, 5);
+        setTimeout(koolic._checkBound, 10);
     }
 
-    setTimeout(koolic._checkBound, 5);
+    setTimeout(koolic._checkBound, 10);
 
     if (typeof Array.prototype.indexOf !== "function") {
         Array.prototype.indexOf = function(item) {
@@ -58,9 +63,9 @@
 
 
 function KoolicElement(element) {
-    var _ele = element;
+    var _originalDisplay = element.style.display;
 
-    this._boundObjs = [];
+    this.el = element;
 
     this.length = 0;
 
@@ -70,64 +75,66 @@ function KoolicElement(element) {
     };
 
     this.show = function() {
-        element.style.display = 'block';
+        element.style.display = (_originalDisplay == 'none' ? 'inline-block' : _originalDisplay);
         return true;
     };
 
     this.parent = function() {
-        return this.getElement().parentNode;
-    }
-
-    this.getElement = function() {
-        return _ele;
+        return this.el.parentNode;
     };
 
     this.text = function(text) {
         if (typeof text !== "undefined") {
-            this.getElement().innerText = text;
+            this.el.innerText = text;
         } else {
-            return this.getElement().innerText;
+            return this.el.innerText;
         }
     };
 
     this.html = function(html) {
         if (typeof html !== "undefined") {
-            this.getElement().innerHTML = html;
+            this.el.innerHTML = html;
         } else {
-            return this.getElement().innerHTML;
+            return this.el.innerHTML;
         }
     };
 
-    this.bind = function(koolicBindable) {
+    this.bind = function(koolicBindable, property) {
         if (!(koolicBindable instanceof KoolicBindable)) return false;
-        if (element instanceof HTMLInputElement && element.type == 'text') {
-            element.value = koolicBindable.value;
-            var that = this;
-            element.addEventListener("input", function(event) {
-                for (var i = 0; i < that._boundObjs.length; i++) {
-                    var bindable = that._boundObjs[i];
-                    bindable.setValue(element.value);
-                }
-            });
-        } else if (element instanceof HTMLSelectElement) {
-            element.value = koolicBindable.value;
-            var that = this;
-            element.addEventListener("input", function(event) {
-                for (var i = 0; i < that._boundObjs.length; i++) {
-                    var bindable = that._boundObjs[i];
-                    bindable.setValue(element.value);
-                }
-            });
-        } else if (element instanceof HTMLElement) {
-            element.innerHTML = koolicBindable.value;
-        }
+        var defaultProp = 'innerText';
 
-        this._boundObjs.push(koolicBindable);
-        koolicBindable.bind(this);
+        if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) {
+            defaultProp = 'value';
+        } else if (element instanceof HTMLElement) {
+            defaultProp = 'innerHTML';
+        };
+
+        var prop = (typeof property === 'undefined' ? defaultProp : property);
+
+        if (koolicBindable.value != null) { //ehh??
+            element[prop] = koolicBindable.value;
+        } else {
+            koolicBindable.value = element[prop];
+        }
+        koolic._boundObjs.push(new KoolicBinding(koolicBindable, this, prop));
+        koolicBindable.bind(this, prop);
         return true;
     };
 }
 
+function KoolicBinding(koolicBindable, targetObject, targetProperty) {
+    this.bindable = {};
+    this.target = {};
+    this.targetProperty = '';
+
+    this.bindable = koolicBindable;
+    this.target = targetObject;
+    this.targetProperty = targetProperty;
+
+    if (koolicBindable instanceof KoolicBindable) {
+        return this;
+    } else return null;
+}
 
 function KoolicObject(object) {
     for (var i = 0; i < koolic._koolObjs.length; i++) {
@@ -165,13 +172,21 @@ function KoolicBindable(object, property) {
 
     this.value = object[property];
 
-    this.hasChange = function() {
+    var hasChange = function() {
         if (_oldval != _obj[_name] || _obj[_name] != this.value) return true;
         else return false;
     }
 
     this.validateObject = function() {
-        if (this.hasChange()) {
+        if (!hasChange()) {
+            for (var i = 0; i < _notify.length; i++) {
+                var bnd = _notify[i];
+                if (bnd.target[bnd.targetProperty] != this.value) {
+                    this.setValue(bnd.target[bnd.targetProperty]);
+                    break; //1st change wins
+                }
+            }
+        } else if (hasChange()) {
             if (this.value != _oldval) {
                 this.setValue(this.value);
                 _oldval = this.value;
@@ -185,19 +200,15 @@ function KoolicBindable(object, property) {
         if (value != this.value) {
             _obj[_name] = value;
             this.value = value;
-            if (_notify && _notify.length > 0) {
-                for (var i = 0; i < _notify.length; i++) {
-                    var koolicObj = _notify[i];
-                    if (koolicObj instanceof KoolicElement) {
-                        var element = _notify[i].getElement();
-                        if ((element instanceof HTMLInputElement && element.type == 'text') || element instanceof HTMLSelectElement) {
-                            element.value = this.value;
-                        } else if (element instanceof HTMLElement) {
-                            element.innerHTML = this.value;
-                        }
-                    } else if (koolicObj instanceof KoolicBindable) {
-                        koolicObj.setValue(this.value);
-                    }
+
+            for (var i = 0; i < _notify.length; i++) {
+                var bnd = _notify[i];
+                if (bnd.target instanceof KoolicElement) {
+                    bnd.target.el[bnd.targetProperty] = this.value;
+                } else if (bnd.target instanceof KoolicBindable) {
+                    bnd.target.setValue(this.value);
+                } else {
+                    bnd.target[bnd.targetProperty] = this.value;
                 }
             }
 
@@ -209,29 +220,35 @@ function KoolicBindable(object, property) {
 
     this.isBound = function(koolicBindable) {
         for (var i = 0; i < _notify.length; i++) {
-            if (_notify[i] == koolicBindable) {
+            var bindable = _notify[i].target;
+            if (bindable === koolicBindable) {
                 return true;
             }
         }
         return false;
     }
 
-    this.bind = function(koolicObj) {
+    this.bind = function(koolicObj, property) {
         if (koolicObj instanceof KoolicElement) {
-            _notify.push(koolicObj);
-            return true;
+            var koolBinding = new KoolicBinding(this, koolicObj, property);
+            _notify.push(koolBinding);
+            return this;
         }
 
-        if (!(koolicObj instanceof KoolicBindable)) return false;
+        if (koolicObj instanceof KoolicBindable) {
+            this.setValue(koolicObj.value);
+            var koolBinding = new KoolicBinding(this, koolicObj, 'value');
+            _notify.push(koolBinding);
 
-        this.setValue(koolicObj.value);
-        _notify.push(koolicObj);
-        if (!koolicObj.isBound(this)) {
-            koolicObj.bind(this);
+            if (!koolicObj.isBound(this)) {
+                koolicObj.bind(this);
+            }
+
+            koolic._boundObjs.push(koolBinding);
+
+            return this;
         }
 
-        return true;
+        return false;
     };
-
-    koolic._boundObjs.push(this);
 };

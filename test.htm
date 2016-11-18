@@ -9,6 +9,8 @@
 
     <input type="text" name="a"></input>
     <input type="text" name="b"></input>
+    <input type="text" name="c"></input>
+    <input type="text" name="d"></input>
     <select name="age">
         <option value="13">13</option>
         <option value="21">21</option>
@@ -22,8 +24,15 @@
             age: 21
         };
 
+        var style = {
+            placeholder: ''
+        }
+
         $$('[name=a]').bind($$(person).name);
         $$('[name=b]').bind($$(person).name);
+        $$('[name=b]').bind($$(person).name);
+        $$('[name=c]').bind($$(style).placeholder);
+        $$('[name=d]').bind($$(style).placeholder, 'placeholder');
         $$('#test').bind($$(person).name);
         $$('[name=age]').bind($$(person).age);
         $$('#testage').bind($$(person).age);
