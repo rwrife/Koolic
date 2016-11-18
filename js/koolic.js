@@ -16,9 +16,9 @@
             for (var i = 0; i < window.koolic._boundObjs.length; i++) {
                 var obj = window.koolic._boundObjs[i];
                 if (obj.target instanceof KoolicElement) {
-                    obj.bindable.setValue(obj.target.el[obj.targetProperty]);
+                    obj.bindable.setValue(window.koolic.objVal(obj.target.el, obj.targetProperty));
                 } else {
-                    obj.bindable.setValue(obj.target[obj.targetProperty]);
+                    obj.bindable.setValue(window.koolic.objVal(obj.target, obj.targetProperty));
                 }
                 obj.bindable.validateObject();
             }
@@ -39,8 +39,31 @@
         };
     }
 
+    window.koolic.objVal = function(object, prop, val) {
+        var props = prop.split('.');
+        if (props.length > 1) {
+            var proplist = '';
+            for (var i = 1; i < props.length; i++) {
+                proplist += props[i] + (i < props.length - 1 ? '.' : '');
+            }
+            return window.koolic.objVal(object[props[0]], proplist, val);
+        } else {
+
+            if (typeof val !== 'undefined') {
+                object[props[0]] = val;
+                return true;
+            } else {
+                return object[props[0]];
+            }
+
+
+        }
+        return null;
+    }
+
     window.$$ = window.koolic;
 })();
+
 
 
 (function(koolic) {
@@ -173,7 +196,7 @@ function KoolicBindable(object, property) {
     this.value = object[property];
 
     var hasChange = function() {
-        if (_oldval != _obj[_name] || _obj[_name] != this.value) return true;
+        if (_oldval != koolic.objVal(_obj, _name) || koolic.objVal(_obj, _name) != this.value) return true;
         else return false;
     }
 
@@ -181,8 +204,8 @@ function KoolicBindable(object, property) {
         if (!hasChange()) {
             for (var i = 0; i < _notify.length; i++) {
                 var bnd = _notify[i];
-                if (bnd.target[bnd.targetProperty] != this.value) {
-                    this.setValue(bnd.target[bnd.targetProperty]);
+                if (koolic.objVal(bnd.target, bnd.targetProperty) != this.value) {
+                    this.setValue(koolic.objVal(bnd.target, bnd.targetProperty));
                     break; //1st change wins
                 }
             }
@@ -190,25 +213,25 @@ function KoolicBindable(object, property) {
             if (this.value != _oldval) {
                 this.setValue(this.value);
                 _oldval = this.value;
-            } else if (_obj[_name] != this.value) {
-                this.setValue(_obj[_name]);
+            } else if (koolic.objVal(_obj, _name) != this.value) {
+                this.setValue(koolic.objVal(_obj, _name));
             }
         }
     }
 
     this.setValue = function(value) {
         if (value != this.value) {
-            _obj[_name] = value;
+            koolic.objVal(_obj, _name, value);
             this.value = value;
-
             for (var i = 0; i < _notify.length; i++) {
                 var bnd = _notify[i];
                 if (bnd.target instanceof KoolicElement) {
-                    bnd.target.el[bnd.targetProperty] = this.value;
+                    console.log(bnd.targetProperty);
+                    koolic.objVal(bnd.target.el, bnd.targetProperty, value);
                 } else if (bnd.target instanceof KoolicBindable) {
-                    bnd.target.setValue(this.value);
+                    bnd.target.setValue(value);
                 } else {
-                    bnd.target[bnd.targetProperty] = this.value;
+                    koolic.objVal(bnd.target, bnd.targetProperty, value);
                 }
             }
 
