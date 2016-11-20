@@ -11,7 +11,7 @@ To use Koolic, simply include an external JS reference to the library in your do
 Once the Koolic library is loaded you can access it via the global variable 'koolic' or use '$$'.  For example:
 
 <script type="text/javascript">
-    $$('div#mydiv').hide();
+    $$('div#mydiv').hide(); //hide() is part of the koolic.html library
 </script>
 
 Unlike jQuery, you can also reference and perform functions on plain Javascript objects as well.  For example:
