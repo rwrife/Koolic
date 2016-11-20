@@ -14,8 +14,13 @@
         } else return null;
     }
 
-    KoolicProperty.prototype.bind = function(bindable) {
+    KoolicProperty.prototype.bind = function(bindable, property) {
         var koolicProperty = this;
+
+        if (koolic.IsPlainObject(bindable) && arguments.length == 2) {
+            return this.bind($$(bindable)[property]);
+        }
+
         if (typeof this.bindings === 'undefined') { this.bindings = []; }
 
         if (bindable instanceof KoolicProperty && !isBound(bindable)) {
@@ -33,7 +38,6 @@
             return false;
         }
 
-
         function isBound(bindable) {
             var t = koolicProperty;
             for (var i = 0; i < koolicProperty.bindings.length; i++) {
@@ -48,7 +52,6 @@
         var koolicElement = this;
 
         if (koolic.IsPlainObject(bindable) && arguments.length == 3) {
-            console.log(bindable);
             return this.bind($$(bindable)[property], targetProperty);
         }
 
