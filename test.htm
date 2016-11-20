@@ -3,6 +3,8 @@
 <head>
     <script src="js/koolic.js" type="text/javascript "></script>
     <script src="js/koolic.bind.js" type="text/javascript "></script>
+    <script src="js/koolic.html.js" type="text/javascript "></script>
+    <script src="js/koolic.animate.js" type="text/javascript "></script>
 </head>
 
 <body>
@@ -16,6 +18,7 @@
         <option value="21">21</option>
         <option value="25">25</option>
     </select>
+    <input type="text" name="e"></input>
     <div>Hello <span id="test">null</span> you are <span id="testage">null</span></div>
 
     <script type="text/javascript">
@@ -29,9 +32,13 @@
             color: ''
         }
 
+        var employee = {
+            name: "bob"
+        }
 
 
-        $$('[name=a]').bind($$(person).name);
+
+        $$('[name=a]').bind(person, 'name', 'placeholder');
         $$('[name=b]').bind($$(person).name);
         $$('[name=b]').bind($$(person).name);
         $$('[name=c]').bind($$(style).placeholder);
@@ -41,6 +48,13 @@
         $$('#testage').bind($$(person).age);
         $$('[name=d]').bind($$(style).color);
         $$('#test').bind($$(style).color, 'style.backgroundColor');
+        /*$$('[name=e]').bind(
+             $$(
+                 function(age) {
+                     return age + 10
+                 }), $$(person).age
+
+         );*/
     </script>
 </body>
 
