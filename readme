@@ -1,0 +1,74 @@
+Koolic JS
+
+Koolic is a simple Javascript ES6 library for performing simple databindings between DOM elements and JSON objects, in addition to providing some simple DOM functions (kind of like jQuery).
+
+To use Koolic, simply include an external JS reference to the library in your document head tag:
+
+<head>
+    <script src="js/koolic.min.js" type="text/javascript "></script>
+</head>
+
+Once the Koolic library is loaded you can access it via the global variable 'koolic' or use '$$'.  For example:
+
+<script type="text/javascript">
+$$('div#mydiv').hide();
+</script>
+
+Unlike jQuery, you can also reference and perform functions on plain Javascript objects as well.  For example:
+
+<script type="text/javascript">
+    var name = $$({name:"ryan"}).name.value();
+</script>
+
+If you include the koolic.bind library (included in the .min.js) you can perform data bindings between object properties.  For example:
+
+<script type="text/javascript">
+    var person = {name: "ryan", age: 21};
+    var employee = {name: "john"};
+
+    $$(employee).name.bind($$(person).name);    
+</script>
+
+...in this example the employee.name has been bound and set to person.name so that employee.name is now set to 'ryan'.  All databindings are two-way by default and changes in either object property will immediately be reflected in the other object.  Once an object has been bound via Koolic, you can change the original object properties directly or through the Koolic functions.  For example:
+
+<script type="text/javascript">
+    var person = {name: "ryan", age: 21};
+    var employee = {name: "john"};
+
+    $$(employee).name.bind($$(person).name);
+    person.name = "bob";
+</script>
+
+Koolic functions will also automatically convert plain Javascript objects and DOM elements to those compatible with Koolic if you want easier to read code.  For example:
+
+<script type="text/javascript">
+    var person = {name: "ryan", age: 21};
+    var employee = {name: "john"};
+
+    $$(employee).name.bind(person, 'name');
+    person.name = "bob";
+</script>
+
+You can also bind DOM element attributes to object properties.  For example:
+
+<script type="text/javascript">
+    var person = {name: "ryan", age: 21};
+
+    $$('input[name=person]').bind($$(person).name);
+    person.name = "bob";
+</script>
+
+...in this example the person.name property is bound to an input control's value property (the default) so that any changes in the object are reflected in the input box and vice versa.  You can also bind to attributes on the DOM elements.  For example:
+
+ <script type="text/javascript">
+    var style = {color: "blue"};
+
+    $$('input[name=color]').bind(style,'color');
+    $$('#myDiv').bind($$(style).color, 'style.backgroundColor');
+</script>
+
+...in this example there is an input box bound to the style.color property and a DIV's background color is bound to the same property so that any changes in the input box will affect the DIV's background color.  You will notice that, by default, it's impossible to type in the input field.  This is because it's validating the style.backgroundColor on the DIV in real-time, so partially spelled colors are invalid, so the only way to input a new color is to cut & paste a new color name (e.g. 'red') into the input box.  You may have also noticed that the two different bind commands are written different, but the end result is the same...it's whatever you prefer.
+
+
+Koolic Animation - Coming Soon
+Koolic Imaging - Coming Soon 
