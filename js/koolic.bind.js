@@ -82,7 +82,6 @@
             }
         });
 
-
         bindable.onChange(function(o, n) {
             koolic.objVal(koolicElement.el, prop, n);
             _oldval = n;

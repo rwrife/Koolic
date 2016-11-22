@@ -80,7 +80,7 @@
             } else if ($$.IsPlainObject(selector)) {
                 return new KoolicObject(selector);
             } else if ($$.IsFunction(selector)) {
-                //koolic funciton
+                return new KoolicFunction(selector);
             }
         }
     };
@@ -108,7 +108,7 @@
     }
 
     function readyStateChange() {
-        if ( document.readyState === "complete" ) {
+        if (document.readyState === "complete") {
             ready();
         }
     }
@@ -121,11 +121,11 @@
         // if ready has already fired, then just schedule the callback
         // to fire asynchronously, but right away
         if (readyFired) {
-            setTimeout(function() {callback(context);}, 1);
+            setTimeout(function() { callback(context); }, 1);
             return;
         } else {
             // add the function and context to the list
-            readyList.push({fn: callback, ctx: context});
+            readyList.push({ fn: callback, ctx: context });
         }
         // if document already ready to go, schedule the ready function to run
         if (document.readyState === "complete") {
@@ -212,10 +212,22 @@ function KoolicProperty(object, property) {
         _obj = object,
         _oldval = object[property],
         _isnum = false,
+        _isint = false,
+        _isfloat = false,
         _val = null,
         _onchange = [];
 
     _val = koolic.objVal(object, property);
+
+    this.isInteger = function() {
+        var n = _val;
+        return n === +n && n === (n | 0);
+    }
+
+    this.isFloat = function() {
+        var n = _val;
+        return n === +n && n !== (n | 0);
+    }
 
     this.hasChange = function() {
         if (_oldval != koolic.objVal(_obj, _name) || koolic.objVal(_obj, _name) != _val) return true;
@@ -247,13 +259,25 @@ function KoolicProperty(object, property) {
 
         if (koolic.IsNumber(value) && !_isnum) {
             _isnum = true;
+            _isint = this.isInteger();
+            if (!_isint) {
+                _isfloat = this.isFloat();
+            }
         } else if (_isnum && !koolic.IsNumber(value) && value != null) {
             return false;
         }
 
         if (value != _val) {
-            koolic.objVal(_obj, _name, value);
-            _val = value;
+            var v = value;
+            if (_isint) {
+                v = parseInt(value);
+            } else if(_isfloat) {
+                v = parseFloat(value);
+            }
+
+
+            koolic.objVal(_obj, _name, v);
+            _val = v;
 
             var c = this.onChange();
             if (_onchange.length > 0) {
@@ -262,7 +286,7 @@ function KoolicProperty(object, property) {
                 }
             }
 
-            _oldval = value;
+            _oldval = v;
         }
         return true;
     };
@@ -272,25 +296,16 @@ function KoolicFunction(func) {
     var _func = func,
         _notify = [];
 
-
-    //return existing
-
     this.exec = function() {
-        var _bindables = [];
-
-        for (var i = 1; i < arguments.length; i++) {
-            if (arguments[i] instanceof KoolicBindableObject) {
-                _bindables.push(arguments[i]);
+        var args = [];
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i] instanceof KoolicProperty) {
+                args.push(arguments[i].value());
+            } else {
+                args.push(arguments[i]);
             }
         }
-        var val = _func.apply(_func, _bindables);
+        var val = _func.apply(_func, args);
         return val;
     };
-
-    this.bind = function(koolicObj, property) {
-        //koolic.objVal(koolicObj, property, this.update());
-        var koolBinding = new KoolicBinding(this, koolicObj, property);
-        _notify.push(koolBinding);
-        koolic._boundObjs.push(koolBinding);
-    }
 }

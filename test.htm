@@ -46,13 +46,11 @@
         $$('#testage').bind($$(person).age);
         $$('[name=d]').bind($$(style).color);
         $$('#test').bind($$(style).color, 'style.backgroundColor');
-        /*$$('[name=e]').bind(
-             $$(
-                 function(age) {
-                     return age + 10
-                 }), $$(person).age
 
-         );*/
+        window.e = $$(
+            function(age) {
+                return console.log("you age is " + (age + 10));
+            });
     </script>
 </body>
 
