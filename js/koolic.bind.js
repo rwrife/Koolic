@@ -90,5 +90,26 @@
         return true;
     };
 
+    KoolicFunction.prototype.bind = function() {
+        var koolicFunction = this;
+        for (var i = 0; i < arguments.length; i++) {
+            var b = arguments[i];
+            if (!(b instanceof KoolicProperty)) return false;
+        }
+
+        var args = arguments;
+
+        for (var i = 0; i < arguments.length; i++) {
+            var b = arguments[i];
+            if (b instanceof KoolicProperty) {
+                b.onChange(function(o, n) {
+                    var f = koolicFunction.exec;
+                    f.apply(f, args);
+                });
+            }
+        }
+
+        return true;
+    };
 
 })(koolic);

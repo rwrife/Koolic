@@ -47,12 +47,11 @@
         $$('[name=d]').bind($$(style).color);
         $$('#test').bind($$(style).color, 'style.backgroundColor');
 
-        function whatsMyAge(age) {
-            return console.log("your age is " + (age + 10));
+        function whatsMyAge(name, age) {
+            return console.log(name + ", your real age is " + (age + 10));
         }
 
-
-        window.e = $$(whatsMyAge);
+        $$(whatsMyAge).bind($$(person).name, $$(person).age)
     </script>
 </body>
 
