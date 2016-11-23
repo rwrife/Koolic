@@ -15,6 +15,7 @@
     window.koolic._watch = [];
 
     window.koolic._frameTimer = function() {
+
         for (var i = 0; i < koolic._watch.length; i++) {
             if (koolic._watch[i].hasOwnProperty('validate'))
                 koolic._watch[i].validate();
@@ -236,6 +237,7 @@ function KoolicProperty(object, property, parent) {
     }
 
     this.value = function(value) {
+
         if (typeof value === 'undefined') return _val;
 
         if (koolic.IsNumber(value) && !_isnum) {
@@ -262,7 +264,7 @@ function KoolicProperty(object, property, parent) {
 
             var c = this.onChange();
             if (_onchange.length > 0) {
-                for (var i = 0; i < _onchange.length; i++) {
+                for (var i = 0; i < _onchange.length; i++) {                    
                     _onchange[i](_oldval, _val);
                 }
             }

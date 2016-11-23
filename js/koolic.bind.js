@@ -58,8 +58,8 @@
 
         if (!(bindable instanceof KoolicProperty)) return false;
 
-        var _pre = '';
-        var _suf = '';
+        var _pre = '',
+            _suf = '';
         if (arguments.length == 5) {
             _pre = (arguments[3] ? arguments[3] : '');
             _suf = (arguments[4] ? arguments[4] : '');
@@ -77,26 +77,26 @@
         }
         var prop = (typeof property === 'undefined' ? defaultProp : property);
 
-        if (typeof property === 'undefined') {
-            switch (prop) {
-                case 'left':
-                    prop = 'style.left';
-                    _suf = 'px';
-                    break;
-                case 'top':
-                    prop = 'style.top';
-                    _suf = 'px';
-                    break;
-                case 'right':
-                    prop = 'style.right';
-                    _suf = 'px';
-                    break;
-                case 'bottom':
-                    prop = 'style.bottom';
-                    _suf = 'px';
-                    break;
-            }
+
+        switch (prop) {
+            case 'left':
+                prop = 'style.left';
+                _suf = 'px';
+                break;
+            case 'top':
+                prop = 'style.top';
+                _suf = 'px';
+                break;
+            case 'right':
+                prop = 'style.right';
+                _suf = 'px';
+                break;
+            case 'bottom':
+                prop = 'style.bottom';
+                _suf = 'px';
+                break;
         }
+
 
         if (bindable.value() != null) { //ignore null?                        
             koolic.objVal(this.el, prop, _pre + bindable.value() + _suf);

@@ -1,6 +1,4 @@
 (function(koolic) {
-
-
     KoolicProperty.prototype.animate = function(start, stop, duration) {
         if (this.isInteger() || this.isFloat()) {
             var koolicProperty = this;

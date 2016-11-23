@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -68,8 +69,6 @@
 
         $$('#greeting').bind($$(ani).left, 'left');
         $$('#greeting').bind($$(ani).top, 'top');
-
-
 
         $$(ani).left.animate(0, 100, 1000).onDone(function(moveright, val) {
             $$(ani).left.animate(val, 0, 1000).onDone(function(moveleft, val) {
