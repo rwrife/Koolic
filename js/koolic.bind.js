@@ -49,10 +49,20 @@
 
     KoolicElement.prototype.bindOnCommit = false;
 
-    KoolicElement.prototype.bind = function(bindable, property, targetProperty) {
+    KoolicElement.prototype.bind = function(bindable, property, targetProperty, prefix, suffix) {
+        var _pre = '';
+        var _suf = '';
+        if (arguments.length == 5) {
+            _pre = (arguments[3] ? arguments[3] : '');
+            _suf = (arguments[4] ? arguments[4] : '');
+        } else if (arguments.length == 4) {
+            _pre = (arguments[2] ? arguments[2] : '');
+            _suf = (arguments[3] ? arguments[3] : '');
+        }
+
         var koolicElement = this;
 
-        if (koolic.IsPlainObject(bindable) && arguments.length == 3) {
+        if (koolic.IsPlainObject(bindable) && (arguments.length == 3 || arguments.length == 5)) {
             return this.bind($$(bindable)[property], targetProperty);
         }
 
@@ -67,23 +77,24 @@
         }
         var prop = (typeof property === 'undefined' ? defaultProp : property);
 
-        if (bindable.value() != null) { //ignore null?
-            koolic.objVal(this.el, prop, bindable.value());
+        console.log(_pre);
+        if (bindable.value() != null) { //ignore null?                        
+            koolic.objVal(this.el, prop, _pre + bindable.value() + _suf);
         } else {
             bindable.value(koolic.objVal(this.el, prop));
         }
 
-        var _oldval = koolic.objVal(this.el, prop);
+        var _oldval = koolic.objVal(this.el, prop.replace(_suf, '').replace(_pre, ''));
 
         this.validate(function() {
-            var _val = koolic.objVal(koolicElement.el, prop);
+            var _val = koolic.objVal(koolicElement.el, prop).replace(_suf, '').replace(_pre, '');
             if (_oldval != _val) {
-                bindable.value(koolic.objVal(koolicElement.el, prop));
+                bindable.value(_val);
             }
         });
 
-        bindable.onChange(function(o, n) {
-            koolic.objVal(koolicElement.el, prop, n);
+        bindable.onChange(function(o, n) {            
+            koolic.objVal(koolicElement.el, prop, _pre + n + _suf);
             _oldval = n;
         });
 
