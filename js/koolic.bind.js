@@ -50,6 +50,14 @@
     KoolicElement.prototype.bindOnCommit = false;
 
     KoolicElement.prototype.bind = function(bindable, property, targetProperty, prefix, suffix) {
+        var koolicElement = this;
+
+        if (koolic.IsPlainObject(bindable) && (arguments.length == 3 || arguments.length == 5)) {
+            return this.bind($$(bindable)[property], targetProperty, arguments[3], arguments[4]);
+        }
+
+        if (!(bindable instanceof KoolicProperty)) return false;
+
         var _pre = '';
         var _suf = '';
         if (arguments.length == 5) {
@@ -60,14 +68,6 @@
             _suf = (arguments[3] ? arguments[3] : '');
         }
 
-        var koolicElement = this;
-
-        if (koolic.IsPlainObject(bindable) && (arguments.length == 3 || arguments.length == 5)) {
-            return this.bind($$(bindable)[property], targetProperty);
-        }
-
-        if (!(bindable instanceof KoolicProperty)) return false;
-
         var defaultProp = 'innerText';
 
         if (this.el instanceof HTMLInputElement || this.el instanceof HTMLSelectElement) {
@@ -77,7 +77,27 @@
         }
         var prop = (typeof property === 'undefined' ? defaultProp : property);
 
-        console.log(_pre);
+        if (typeof property === 'undefined') {
+            switch (prop) {
+                case 'left':
+                    prop = 'style.left';
+                    _suf = 'px';
+                    break;
+                case 'top':
+                    prop = 'style.top';
+                    _suf = 'px';
+                    break;
+                case 'right':
+                    prop = 'style.right';
+                    _suf = 'px';
+                    break;
+                case 'bottom':
+                    prop = 'style.bottom';
+                    _suf = 'px';
+                    break;
+            }
+        }
+
         if (bindable.value() != null) { //ignore null?                        
             koolic.objVal(this.el, prop, _pre + bindable.value() + _suf);
         } else {
@@ -93,7 +113,7 @@
             }
         });
 
-        bindable.onChange(function(o, n) {            
+        bindable.onChange(function(o, n) {
             koolic.objVal(koolicElement.el, prop, _pre + n + _suf);
             _oldval = n;
         });

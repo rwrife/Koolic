@@ -66,8 +66,8 @@
             console.log("page is ready")
         });
 
-        $$('#greeting').bind($$(ani).left, 'style.left', '', 'px');
-        $$('#greeting').bind($$(ani).top, 'style.top', '', 'px');
+        $$('#greeting').bind($$(ani).left, 'left');
+        $$('#greeting').bind($$(ani).top, 'top');
 
 
 
@@ -76,7 +76,7 @@
                 $$(ani).left.animate(moveright);
             });
         });
-        //$$(ani).top.animate(0, 100, 2000);
+        $$(ani).top.animate(0, 100, 2000);
 
         function rotate(rot) {
             $$('#greeting').el.style.transform = 'rotate(' + rot + 'deg)';
