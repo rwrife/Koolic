@@ -47,6 +47,7 @@
         }
     };
 
+    KoolicElement.prototype.bindOnCommit = false;
 
     KoolicElement.prototype.bind = function(bindable, property, targetProperty) {
         var koolicElement = this;
@@ -71,7 +72,6 @@
         } else {
             bindable.value(koolic.objVal(this.el, prop));
         }
-
 
         var _oldval = koolic.objVal(this.el, prop);
 

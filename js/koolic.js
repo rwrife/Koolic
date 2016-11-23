@@ -11,18 +11,13 @@
     window.koolic.IsNumber = function(obj) { return /^-?[\d.]+(?:e-?\d+)?$/.test(obj); };
     window.koolic.IsString = function(obj) { return typeof o == "string" || (typeof o == "object" && o.constructor === String); }
 
-    window.koolic._elems = [];
     window.koolic._objs = [];
-    window.koolic._props = [];
-
+    window.koolic._watch = [];
 
     window.koolic._frameTimer = function() {
-        for (var i = 0; i < koolic._props.length; i++) {
-            koolic._props[i].validate();
-        }
-
-        for (var i = 0; i < koolic._elems.length; i++) {
-            koolic._elems[i].validate();
+        for (var i = 0; i < koolic._watch.length; i++) {
+            if (koolic._watch[i].hasOwnProperty('validate'))
+                koolic._watch[i].validate();
         }
 
         setTimeout(koolic._frameTimer, 10);
@@ -91,62 +86,39 @@
 
     function ready() {
         if (!readyFired) {
-            // this must be set to true before we start calling callbacks
             readyFired = true;
             for (var i = 0; i < readyList.length; i++) {
-                // if a callback here happens to add new ready handlers,
-                // the docReady() function will see that it already fired
-                // and will schedule the callback to run right after
-                // this event loop finishes so all handlers will still execute
-                // in order and no new ones will be added to the readyList
-                // while we are processing the list
                 readyList[i].fn.call(window, readyList[i].ctx);
             }
-            // allow any closures held by these functions to free
             readyList = [];
         }
     }
 
-    function readyStateChange() {
-        if (document.readyState === "complete") {
-            ready();
-        }
-    }
-
-    // This is the one public interface
-    // docReady(fn, context);
-    // the context argument is optional - if present, it will be passed
-    // as an argument to the callback
     koolic.ready = function(callback, context) {
-        // if ready has already fired, then just schedule the callback
-        // to fire asynchronously, but right away
         if (readyFired) {
             setTimeout(function() { callback(context); }, 1);
             return;
         } else {
-            // add the function and context to the list
             readyList.push({ fn: callback, ctx: context });
         }
-        // if document already ready to go, schedule the ready function to run
+
         if (document.readyState === "complete") {
             setTimeout(ready, 1);
         } else if (!readyEventHandlersInstalled) {
-            // otherwise if we don't have event handlers installed, install them
             if (document.addEventListener) {
-                // first choice is DOMContentLoaded event
                 document.addEventListener("DOMContentLoaded", ready, false);
-                // backup is window load event
                 window.addEventListener("load", ready, false);
-            } else {
-                // must be IE
-                document.attachEvent("onreadystatechange", readyStateChange);
+            } else { //IE fallback
+                document.attachEvent("onreadystatechange", function() {
+                    if (document.readyState === "complete") {
+                        ready();
+                    }
+                });
                 window.attachEvent("onload", ready);
             }
             readyEventHandlersInstalled = true;
         }
-    }
-
-
+    };
 
 })(window.koolic);
 
@@ -171,7 +143,7 @@ function KoolicElement(element) {
         return true;
     }
 
-    koolic._elems.push(this);
+    koolic._watch.push(this);
 }
 
 function KoolicObject(object) {
@@ -196,8 +168,8 @@ function KoolicObject(object) {
             if (typeof object[property] === "object") {
                 this[property] = new KoolicObject(object[property]);
             } else if (typeof object[property] === "string" || typeof object[property] === "number" || typeof object[property] === "boolean") {
-                this[property] = new KoolicProperty(object, property);
-                $$._props.push(this[property]);
+                this[property] = new KoolicProperty(object, property, this);
+                $$._watch.push(this[property]);
             } else {
                 this[property] = object[property];
             }
@@ -207,7 +179,7 @@ function KoolicObject(object) {
     koolic._objs.push(this);
 }
 
-function KoolicProperty(object, property) {
+function KoolicProperty(object, property, parent) {
     var _name = property,
         _obj = object,
         _oldval = object[property],
@@ -215,9 +187,18 @@ function KoolicProperty(object, property) {
         _isint = false,
         _isfloat = false,
         _val = null,
-        _onchange = [];
+        _onchange = [],
+        _parent = null;
 
     _val = koolic.objVal(object, property);
+
+    if (typeof parent !== 'undefined') {
+        _parent = parent;
+    }
+
+    this.parent = function() {
+        return _parent;
+    }
 
     this.isInteger = function() {
         var n = _val;

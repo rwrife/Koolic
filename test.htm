@@ -19,7 +19,7 @@
         <option value="25">25</option>
     </select>
     <input type="text" name="e"></input>
-    <div>Hello <span id="test">null</span> you are <span id="testage">null</span></div>
+    <div style="position:relative;" id="greeting">Hello <span id="test">null</span> you are <span id="testage">null</span></div>
 
     <script type="text/javascript">
         var person = {
@@ -33,11 +33,17 @@
         }
 
         var employee = {
-            name: "bob"
+            name: "bob",
+            salary: 0.00
+        }
+
+        var ani = {
+            left: 0,
+            top: 0,
+            rot: 0
         }
 
         $$('[name=a]').bind(person, 'name', 'placeholder');
-        //$$('[name=b]').bind($$(person).name);
         $$('[name=b]').bind($$(person).name);
         $$('[name=c]').bind($$(style).placeholder);
         $$('[name=d]').bind($$(style).placeholder, 'placeholder');
@@ -46,12 +52,32 @@
         $$('#testage').bind($$(person).age);
         $$('[name=d]').bind($$(style).color);
         $$('#test').bind($$(style).color, 'style.backgroundColor');
+        $$('[name=e]').bind($$(employee).salary);
 
         function whatsMyAge(name, age) {
             return console.log(name + ", your real age is " + (age + 10));
         }
 
         $$(whatsMyAge).bind($$(person).name, $$(person).age)
+
+        $$(employee).salary.animate(0.00, 100000.00, 2000);
+
+        $$.ready(function() {
+            console.log("page is ready")
+        });
+
+        $$('#greeting').bind($$(ani).left, 'style.left');
+        $$('#greeting').bind($$(ani).top, 'style.top');
+        $$(ani).left.animate(0, 100, 10000);
+        $$(ani).top.animate(0, 100, 10000);
+
+        function rotate(rot) {
+            $$('#greeting').el.style.transform = 'rotate(' + rot + 'deg)';
+        }
+
+        $$(rotate).bind($$(ani).rot);
+
+        $$(ani).rot.animate(0,360,2000);
     </script>
 </body>
 
