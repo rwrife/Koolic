@@ -36,12 +36,12 @@
             name: "bob",
             salary: 0.00
         }
-
         var ani = {
             left: 0,
             top: 0,
             rot: 0
         }
+
 
         $$('[name=a]').bind(person, 'name', 'placeholder');
         $$('[name=b]').bind($$(person).name);
@@ -68,8 +68,15 @@
 
         $$('#greeting').bind($$(ani).left, 'style.left');
         $$('#greeting').bind($$(ani).top, 'style.top');
-        $$(ani).left.animate(0, 100, 10000);
-        $$(ani).top.animate(0, 100, 10000);
+
+
+
+        $$(ani).left.animate(0, 100, 1000).onDone(function(moveright, val) {
+            $$(ani).left.animate(val, 0, 1000).onDone(function(moveleft, val) {
+                $$(ani).left.animate(moveright);
+            });
+        });
+        //$$(ani).top.animate(0, 100, 2000);
 
         function rotate(rot) {
             $$('#greeting').el.style.transform = 'rotate(' + rot + 'deg)';
@@ -77,7 +84,7 @@
 
         $$(rotate).bind($$(ani).rot);
 
-        $$(ani).rot.animate(0,360,2000);
+        //$$(ani).rot.animate(0, 360, 2000);
     </script>
 </body>
 
