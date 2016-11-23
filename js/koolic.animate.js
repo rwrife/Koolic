@@ -1,7 +1,7 @@
 (function(koolic) {
     KoolicProperty.prototype.animate = function(start, stop, duration) {
-        if (this.isInteger() || this.isFloat()) {
-            var koolicProperty = this;
+        var koolicProperty = this;
+        if (koolicProperty.isInteger() || koolicProperty.isFloat()) {
             if (arguments.length == 1 && arguments[0] instanceof KoolicAnimation) {
                 arguments[0].reset();
                 $$._watch.push(arguments[0]);

@@ -69,7 +69,22 @@ You can also bind DOM element attributes to object properties.  For example:
 
 ...in this example there is an input box bound to the style.color property and a DIV's background color is bound to the same property so that any changes in the input box will affect the DIV's background color.  You will notice that, by default, it's impossible to type in the input field.  This is because it's validating the style.backgroundColor on the DIV in real-time, so partially spelled colors are invalid, so the only way to input a new color is to cut & paste a new color name (e.g. 'red') into the input box.  You may have also noticed that the two different bind commands are written different, but the end result is the same...it's whatever you prefer.
 
+Using the Koolic animation library you can automatically increment or decrement numeric values over a given amount of time.  For example:
 
-Koolic Animation - Coming Soon
+<script type="text/javascript">
+    var ani = { left: 0 };
+
+    $$('#greeting').bind($$(ani).left, 'left');
+
+    $$(ani).left.animate(0, 100, 1000).onDone(function(moveright, val) {
+        $$(ani).left.animate(val, 0, 1000).onDone(function(moveleft, val) {
+            $$(ani).left.animate(moveright);
+        });
+    });
+</script>
+
+...in this example the element with an id of 'greeting' has a 'left' property ('left' is a binding helper that maps to 'style.left') to the ani.left property.  Then using the animation library we've told koolic to change the value from 0 to 100 over 1000 milliseconds, when complete to reverse the animation from 100 to 0.  The end result is the element bouncing left and right over 100 pixels. 
+
+
 Koolic Imaging - Coming Soon 
 Koolic UI - Coming Soon
