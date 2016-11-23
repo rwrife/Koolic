@@ -271,7 +271,7 @@ function KoolicProperty(object, property) {
             var v = value;
             if (_isint) {
                 v = parseInt(value);
-            } else if(_isfloat) {
+            } else if (_isfloat) {
                 v = parseFloat(value);
             }
 
@@ -294,7 +294,33 @@ function KoolicProperty(object, property) {
 
 function KoolicFunction(func) {
     var _func = func,
-        _notify = [];
+        _notify = [],
+        _val = null,
+        _before = [],
+        _after = [];
+
+    var koolicFunction = this;
+
+    for (var t in window) {
+        if (window[t] === func) {
+            window[t] = function() {
+                var f = koolicFunction.exec;
+                return f.apply(f, arguments);
+            }
+        }
+    }
+
+    this.beforeExec = function(func) {
+        if (typeof func !== 'undefined' && koolic.IsFunction(func)) {
+            _before.push(func);
+        }
+    }
+
+    this.afterExec = function(func) {
+        if (typeof func !== 'undefined' && koolic.IsFunction(func)) {
+            _before.push(func);
+        }
+    }
 
     this.exec = function() {
         var args = [];
@@ -305,7 +331,25 @@ function KoolicFunction(func) {
                 args.push(arguments[i]);
             }
         }
-        var val = _func.apply(_func, args);
-        return val;
+        if (_before.length > 0) {
+            for (var i = 0; i < _before.length; i++) {
+                var f = _before[i];
+                f.apply(f, args);
+            }
+        }
+
+        _val = _func.apply(_func, args);
+
+        if (_after.length > 0) {
+            for (var i = 0; i < _after.length; i++) {
+                var f = _after[i];
+                f.apply(f, args);
+            }
+        }
+        return _val;
     };
+
+    this.value = function() {
+        return _val;
+    }
 }
