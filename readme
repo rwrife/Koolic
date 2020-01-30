@@ -84,7 +84,3 @@ Using the Koolic animation library you can automatically increment or decrement 
 </script>
 
 ...in this example the element with an id of 'greeting' has a 'left' property ('left' is a binding helper that maps to 'style.left') to the ani.left property.  Then using the animation library we've told koolic to change the value from 0 to 100 over 1000 milliseconds, when complete to reverse the animation from 100 to 0.  The end result is the element bouncing left and right over 100 pixels. 
-
-
-Koolic Imaging - Coming Soon 
-Koolic UI - Coming Soon
