@@ -1,0 +1,303 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 13 Router</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.store.js"></script>
+    <script src="../js/koolic.router.js"></script>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+               margin: 0; color: #222; background: #fafafa; }
+        header { background: #1d3a25; color: white; padding: 1em 1.5em;
+                 display: flex; gap: 1.5em; align-items: center; }
+        header .brand { font-weight: 700; letter-spacing: 0.05em; }
+        header nav { display: flex; gap: 1.2em; flex-wrap: wrap; }
+        header a { color: #b6ffce; text-decoration: none; cursor: pointer; padding: 4px 6px; border-radius: 3px; }
+        header a:hover { background: rgba(255,255,255,0.1); }
+        header a.active { background: rgba(255,255,255,0.2); color: white; }
+        header .cart-badge {
+            background: #c0392b; color: white; padding: 1px 8px;
+            border-radius: 10px; font-size: 0.8em; margin-left: 4px;
+        }
+        main { max-width: 860px; margin: 0 auto; padding: 1.5em; }
+        .crumbs { color: #888; font-size: 0.85em; margin-bottom: 1em; font-family: ui-monospace, Menlo, monospace; }
+        h1 { margin-top: 0; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1em; }
+        .card {
+            padding: 1em; background: white; border: 1px solid #ddd; border-radius: 6px;
+            cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .card h3 { margin: 0 0 0.3em; }
+        .card .price { color: #2e8b57; font-weight: 600; }
+        .product-detail { background: white; padding: 1.5em; border-radius: 6px; border: 1px solid #ddd; }
+        .product-detail .price { font-size: 1.5em; color: #2e8b57; font-weight: 700; }
+        button { padding: 8px 16px; font-size: 1em; border-radius: 4px;
+                 border: 1px solid #2e8b57; background: #2e8b57; color: white;
+                 cursor: pointer; font-family: inherit; }
+        button.secondary { background: white; color: #2e8b57; }
+        button.danger { background: #c0392b; border-color: #c0392b; }
+        section[data-view] { animation: fade 0.18s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+        .cart-line { display: flex; justify-content: space-between; align-items: center;
+                     padding: 0.6em 0; border-bottom: 1px solid #eee; }
+        .cart-line:last-child { border: 0; }
+        .empty { color: #888; text-align: center; padding: 2em; }
+        a.text-link { color: #2e8b57; }
+        .pill { background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 0.85em; }
+        pre { background: #f4f4f4; padding: 1em; border-radius: 4px; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">⌘ KOOL SHOP</div>
+    <nav>
+        <a data-route="/"          id="navHome">Home</a>
+        <a data-route="/products"  id="navProducts">Products</a>
+        <a data-route="/about"     id="navAbout">About</a>
+        <a data-route="/cart"      id="navCart">Cart <span class="cart-badge" id="cartCount">0</span></a>
+    </nav>
+</header>
+
+<main>
+    <div class="crumbs">URL: <span id="currentPath">/</span></div>
+
+    <!-- All <section data-view> children are hidden by router; the matched one is revealed. -->
+
+    <section data-view id="view-home">
+        <h1>Welcome</h1>
+        <p>
+            A small single-page app built with Koolic's
+            <a class="text-link" data-route="/about">router</a>,
+            <code>$$ </code> bindings, and the memory-backed state store.
+        </p>
+        <p>Try clicking around — note how:</p>
+        <ul>
+            <li>The URL changes (look at the address bar's <code>#/…</code>) without a full page reload.</li>
+            <li>The cart count in the header stays consistent because it's bound to a shared store.</li>
+            <li>The back button and refresh both Just Work.</li>
+            <li>Unknown URLs (try <code>#/whatever</code>) fall through to a 404.</li>
+        </ul>
+    </section>
+
+    <section data-view id="view-products">
+        <h1>Products</h1>
+        <p>Click a product to see its details.</p>
+        <div class="grid" id="productGrid"></div>
+    </section>
+
+    <section data-view id="view-product">
+        <p><a class="text-link" data-route="/products">← back to products</a></p>
+        <div class="product-detail">
+            <h1 id="pdName">…</h1>
+            <p class="pill" id="pdId"></p>
+            <p id="pdDesc"></p>
+            <p class="price">$<span id="pdPrice"></span></p>
+            <button id="pdAdd">Add to cart</button>
+            <span id="pdAddedMsg" style="margin-left:1em;color:#2e8b57"></span>
+        </div>
+    </section>
+
+    <section data-view id="view-cart">
+        <h1>Your cart</h1>
+        <div id="cartList"></div>
+        <p style="text-align:right;font-size:1.1em">
+            Total: <strong>$<span id="cartTotal">0.00</span></strong>
+        </p>
+        <p style="text-align:right">
+            <button class="secondary" id="cartClear">Clear cart</button>
+            <button id="cartCheckout">Checkout</button>
+        </p>
+    </section>
+
+    <section data-view id="view-about">
+        <h1>About</h1>
+        <p>This demo combines three Koolic libraries:</p>
+        <ul>
+            <li><code>koolic.js</code> — reactive properties, DOM binding</li>
+            <li><code>koolic.store.js</code> — the cart lives in a memory store; it survives navigation but not full reloads</li>
+            <li><code>koolic.router.js</code> — view switching, <code>:id</code> parameters, click delegation, a 404 fallback</li>
+        </ul>
+        <p>
+            Each <code>&lt;section data-view&gt;</code> in the markup is one "page". The router
+            shows the one whose path matches and hides the rest. Cart count badge,
+            page title, and breadcrumb are all <em>reactive bindings</em> — no manual
+            DOM updates anywhere.
+        </p>
+    </section>
+
+    <section data-view id="view-notfound">
+        <h1>404 — Page not found</h1>
+        <p>
+            We don't have a route for <code id="nfPath"></code>.
+            <a class="text-link" data-route="/">Go home →</a>
+        </p>
+    </section>
+</main>
+
+<script>
+// ====================================================================
+// 1. Product catalog — a small fixed dataset.
+// ====================================================================
+const PRODUCTS = [
+    { id: 'widget',   name: 'Widget',    price:  9.99, desc: 'A versatile widget for all occasions.' },
+    { id: 'gizmo',    name: 'Gizmo',     price: 14.50, desc: 'The gizmo to end all gizmos.' },
+    { id: 'doodad',   name: 'Doodad',    price:  5.00, desc: 'A small, but mighty, doodad.' },
+    { id: 'thingamy', name: 'Thingamy',  price: 22.00, desc: 'Whoever named this thingamy was inspired.' },
+    { id: 'gadget',   name: 'Gadget',    price: 33.33, desc: 'You will find a use for this gadget. Probably.' },
+    { id: 'sprocket', name: 'Sprocket',  price:  7.25, desc: 'Spins. Rotates. Sprockets.' }
+];
+const byId = id => PRODUCTS.find(p => p.id === id);
+
+// ====================================================================
+// 2. Cart — a memory-backed Koolic store, so it survives navigation
+//    between views (but not a full page reload, which is fine for the
+//    demo and proves the router is not reloading).
+// ====================================================================
+const cart = koolic.store('cart', { items: [], total: 0 }, {
+    storage: 'memory',
+    debounce: 0
+});
+
+function addToCart(productId) {
+    const product = byId(productId);
+    if (!product) return;
+    const existing = cart.items.find(i => i.id === productId);
+    if (existing) {
+        existing.qty = existing.qty + 1;
+    } else {
+        // Direct array mutation isn't reactive in Koolic — replace the array
+        // reference so the .items setter fires.
+        cart.items = cart.items.concat({ id: productId, name: product.name, price: product.price, qty: 1 });
+    }
+    cart.total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+function removeFromCart(productId) {
+    cart.items = cart.items.filter(i => i.id !== productId);
+    cart.total = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+function clearCart() { cart.items = []; cart.total = 0; }
+
+// Header badge bound to derived item-count.
+function updateCartCount(items) {
+    const n = items.reduce((s, i) => s + i.qty, 0);
+    document.getElementById('cartCount').textContent = n;
+    document.getElementById('cartCount').style.display = n > 0 ? '' : 'none';
+}
+$$(updateCartCount).bind($$(cart).items);
+
+// ====================================================================
+// 3. Per-view renderers.
+// ====================================================================
+function renderProductList() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = PRODUCTS.map(p => `
+        <div class="card" data-route="/products/${p.id}">
+            <h3>${p.name}</h3>
+            <p>${p.desc}</p>
+            <div class="price">$${p.price.toFixed(2)}</div>
+        </div>
+    `).join('');
+}
+
+function renderProductDetail(id) {
+    const p = byId(id);
+    if (!p) {
+        // Unknown product id -> redirect to a 404.
+        koolic.router.replace('/__notfound__/' + id);
+        return;
+    }
+    document.getElementById('pdName').textContent = p.name;
+    document.getElementById('pdId').textContent = 'sku: ' + p.id;
+    document.getElementById('pdDesc').textContent = p.desc;
+    document.getElementById('pdPrice').textContent = p.price.toFixed(2);
+    document.getElementById('pdAddedMsg').textContent = '';
+    document.getElementById('pdAdd').onclick = () => {
+        addToCart(p.id);
+        document.getElementById('pdAddedMsg').textContent = '✓ Added';
+    };
+}
+
+function renderCart() {
+    const list = document.getElementById('cartList');
+    if (!cart.items.length) {
+        list.innerHTML = '<p class="empty">Your cart is empty. <a class="text-link" data-route="/products">Browse products →</a></p>';
+        return;
+    }
+    list.innerHTML = cart.items.map(i => `
+        <div class="cart-line">
+            <span><strong>${i.name}</strong> &times; ${i.qty}</span>
+            <span>$${(i.price * i.qty).toFixed(2)}</span>
+            <button class="danger" data-remove="${i.id}">Remove</button>
+        </div>
+    `).join('');
+    list.querySelectorAll('button[data-remove]').forEach(b => {
+        b.onclick = () => removeFromCart(b.dataset.remove);
+    });
+}
+
+// Re-render cart view whenever cart changes (function binding).
+$$(() => {
+    renderCart();
+    document.getElementById('cartTotal').textContent = cart.total.toFixed(2);
+}).bind($$(cart).items, $$(cart).total);
+
+// ====================================================================
+// 4. Router configuration.
+//
+//    Each route maps a path pattern to a view selector. Hooks fire
+//    BEFORE the view appears (so renderProductDetail can populate the
+//    DOM in time).
+// ====================================================================
+koolic.router({
+    mode: 'hash',                       // works from file:// without a server
+    routes: [
+        { path: '/',             view: '#view-home' },
+        { path: '/products',     view: '#view-products', enter: renderProductList },
+        { path: '/products/:id', view: '#view-product',  enter: ({ id }) => renderProductDetail(id) },
+        { path: '/cart',         view: '#view-cart',     enter: renderCart },
+        { path: '/about',        view: '#view-about' },
+        { path: '*',             view: '#view-notfound', enter: () => {
+            document.getElementById('nfPath').textContent = koolic.router.current.path;
+        }}
+    ]
+});
+
+// ====================================================================
+// 5. Wire up the cart-page buttons.
+// ====================================================================
+document.getElementById('cartClear').onclick = clearCart;
+document.getElementById('cartCheckout').onclick = () => {
+    alert('Pretending to check out:\n\n' + JSON.stringify(cart, null, 2));
+    clearCart();
+    koolic.router.navigate('/');
+};
+
+// ====================================================================
+// 6. Reactive UI bound to the router's current path:
+//      - the breadcrumb on every page
+//      - the "active" nav link
+// ====================================================================
+$$('#currentPath').bind($$(koolic.router.current).path);
+
+const navLinks = {
+    '/':         document.getElementById('navHome'),
+    '/products': document.getElementById('navProducts'),
+    '/about':    document.getElementById('navAbout'),
+    '/cart':     document.getElementById('navCart')
+};
+$$(path => {
+    Object.entries(navLinks).forEach(([p, el]) => {
+        el.classList.toggle('active', path === p || (p === '/products' && path.startsWith('/products')));
+    });
+}).bind($$(koolic.router.current).path);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head><title>About · Kool SPA</title></head>
+<body>
+    <h1>About this app</h1>
+    <p>
+        Each top-level page (<code>home.html</code>, <code>about.html</code>,
+        <code>blog.html</code>, <code>contact.html</code>) is a standalone
+        HTML file. The router fetches them with the browser's <code>fetch</code>
+        API, parses out the <code>&lt;body&gt;</code>, and swaps it into the
+        shell's mount point.
+    </p>
+
+    <h2>What works</h2>
+    <ul>
+        <li>Inline <code>&lt;script&gt;</code> tags inside fetched pages are re-executed.
+            See the time stamp below — it was set by a script <em>inside this page</em>:</li>
+    </ul>
+    <p>Page rendered at: <strong id="renderedAt">—</strong></p>
+    <script>
+        // This script runs every time the page is fetched & shown.
+        document.getElementById('renderedAt').textContent = new Date().toLocaleTimeString();
+    </script>
+
+    <h2>What doesn't</h2>
+    <ul>
+        <li>Module scripts (<code>type="module"</code>) are <em>not</em> re-executed —
+            they dedupe by URL.</li>
+        <li>Don't reference <code>document.body</code> or expect the host page
+            to reload. Use the <code>enter</code> hook (declared in the route
+            config) for navigation-aware setup.</li>
+    </ul>
+
+    <p><a data-route="/blog">→ Browse the blog</a></p>
+</body>
+</html>

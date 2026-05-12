@@ -135,6 +135,9 @@ Open these directly in a browser — no server required.
 | [`examples/10-advanced-form.html`](examples/10-advanced-form.html) | **Checkout-style form** — multi-field validation, computed totals, JSON payload for REST submit |
 | [`examples/npm-usage/`](examples/npm-usage) | **Install Koolic from npm** and use it in a browser page + a Node script |
 | [`examples/11-space-invaders.html`](examples/11-space-invaders.html) | **Space Invaders** — full SVG arcade game; entities are reactive Koolic models, game loop just mutates state |
+| [`examples/12-state-store.html`](examples/12-state-store.html) | **State store** — three storage backends (memory/session/local), persistent forms, cross-tab sync |
+| [`examples/13-router.html`](examples/13-router.html) | **Router** — full multi-page shop SPA: nav, products, `:id` detail, shared cart, 404 |
+| [`examples/14-multi-page/`](examples/14-multi-page/) | **Multi-page SPA** — each page is a separate `.html` file fetched on demand into a persistent shell |
 
 ## Documentation
 

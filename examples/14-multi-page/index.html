@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — Multi-page SPA</title>
+    <script src="../../js/koolic.js"></script>
+    <script src="../../js/koolic.store.js"></script>
+    <script src="../../js/koolic.router.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+               margin: 0; color: #222; background: #fafafa; }
+        header { background: #1d3a25; color: white; padding: 1em 1.5em;
+                 display: flex; gap: 1.5em; align-items: center; }
+        header .brand { font-weight: 700; letter-spacing: 0.05em; }
+        header nav { display: flex; gap: 1.2em; }
+        header a { color: #b6ffce; text-decoration: none; cursor: pointer; padding: 4px 6px; border-radius: 3px; }
+        header a:hover { background: rgba(255,255,255,0.1); }
+        header a.active { background: rgba(255,255,255,0.2); color: white; }
+        main#app { max-width: 860px; margin: 0 auto; padding: 1.5em; min-height: 50vh; }
+        footer { text-align: center; padding: 1.5em; color: #888; font-size: 0.85em; }
+        .crumbs { color: #888; font-size: 0.85em; margin: 0.5em auto 0; max-width: 860px; padding: 0 1.5em;
+                  font-family: ui-monospace, Menlo, monospace; }
+        .loading { color: #888; padding: 2em; text-align: center; }
+    </style>
+</head>
+<body>
+
+<!-- Persistent shell - NEVER reloads. -->
+<header>
+    <div class="brand">⌘ KOOL SPA</div>
+    <nav>
+        <a data-route="/"        id="navHome">Home</a>
+        <a data-route="/about"   id="navAbout">About</a>
+        <a data-route="/blog"    id="navBlog">Blog</a>
+        <a data-route="/contact" id="navContact">Contact</a>
+    </nav>
+</header>
+<div class="crumbs">URL: <span id="currentPath">/</span></div>
+
+<!-- The router fetches HTML files and injects their <body> contents here. -->
+<main id="app">
+    <p class="loading">Loading…</p>
+</main>
+
+<footer>
+    Shell stays put · each page is a separate <code>.html</code> file fetched on demand.
+</footer>
+
+<script>
+// ====================================================================
+// The router configuration is the entire app's "site map".
+//
+//   container:  the host element that receives fetched page content
+//   pages:      base URL prefix for relative page paths
+//   pageCache:  on by default — second visit to a page is instant
+//
+// Each route declares a `page` (URL to fetch) instead of (or alongside)
+// a `view`. The router will:
+//   1. fetch the .html file
+//   2. parse its body and copy it into #app
+//   3. execute any inline <script> tags found inside
+//   4. update document.title from the fetched page
+//   5. run the route's `enter` hook (DOM is in place)
+// ====================================================================
+koolic.router({
+    mode: 'hash',
+    container: '#app',
+    pages: 'pages/',
+    routes: [
+        { path: '/',        page: 'home.html' },
+        { path: '/about',   page: 'about.html' },
+        { path: '/blog',    page: 'blog.html' },
+        { path: '/blog/:slug', page: 'post.html',
+          enter: ({ slug }) => {
+              // The fetched post.html contains a placeholder; populate it.
+              const el = document.getElementById('postSlug');
+              if (el) el.textContent = slug;
+          } },
+        { path: '/contact', page: 'contact.html' },
+        { path: '*',        page: '404.html' }
+    ]
+});
+
+// Reactive breadcrumb + active-nav highlight.
+$$('#currentPath').bind($$(koolic.router.current).path);
+
+const navLinks = {
+    '/':        document.getElementById('navHome'),
+    '/about':   document.getElementById('navAbout'),
+    '/blog':    document.getElementById('navBlog'),
+    '/contact': document.getElementById('navContact')
+};
+$$(path => {
+    Object.entries(navLinks).forEach(([p, el]) => {
+        const active = path === p || (p === '/blog' && path.startsWith('/blog'));
+        el.classList.toggle('active', active);
+    });
+}).bind($$(koolic.router.current).path);
+
+// A page-view counter living in a memory store. Survives navigation,
+// resets on full reload.
+const stats = koolic.store('page-stats', { visits: {} }, { storage: 'memory' });
+$$(koolic.router.current).path.onChange((_, path) => {
+    stats.visits = { ...stats.visits, [path]: (stats.visits[path] || 0) + 1 };
+});
+// Expose so individual pages can read it.
+window.__stats = stats;
+</script>
+</body>
+</html>

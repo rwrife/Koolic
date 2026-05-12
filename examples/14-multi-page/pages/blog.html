@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head><title>Blog · Kool SPA</title></head>
+<body>
+    <h1>Blog</h1>
+    <p>Click a post — note the URL changes to <code>#/blog/:slug</code>.</p>
+
+    <ul>
+        <li><a data-route="/blog/hello-koolic">Hello, Koolic</a></li>
+        <li><a data-route="/blog/why-svg">Why SVG is underrated</a></li>
+        <li><a data-route="/blog/state-stores">State stores in 100 lines</a></li>
+        <li><a data-route="/blog/router-design">Designing a tiny router</a></li>
+    </ul>
+
+    <p style="margin-top:2em;color:#666">
+        You've been on the blog page <strong id="visits">…</strong> time(s) this session.
+    </p>
+    <script>
+        // Read the memory store exposed on window by index.html.
+        const v = (window.__stats && window.__stats.visits['/blog']) || 1;
+        document.getElementById('visits').textContent = v;
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head><title>Contact · Kool SPA</title></head>
+<body>
+    <h1>Contact</h1>
+    <p>This page has its own form, with its own data binding logic, all inline:</p>
+
+    <form id="contactForm" onsubmit="event.preventDefault();">
+        <p><label>Name <input id="cName" /></label></p>
+        <p><label>Email <input id="cEmail" type="email" /></label></p>
+        <p><label>Message<br><textarea id="cMsg" rows="4" cols="40"></textarea></label></p>
+        <p><button type="submit" id="cSubmit">Send</button></p>
+    </form>
+
+    <p>Live JSON preview:</p>
+    <pre id="cPreview" style="background:#f4f4f4;padding:1em;border-radius:4px"></pre>
+
+    <script>
+        // Each contact-page mount creates a fresh local model so re-visits
+        // don't carry over the previous form values. (Use koolic.store with
+        // a 'session' backend if you want the opposite.)
+        const form = { name: '', email: '', msg: '' };
+        $$('#cName').bind($$(form).name);
+        $$('#cEmail').bind($$(form).email);
+        $$('#cMsg').bind($$(form).msg);
+
+        function render() { document.getElementById('cPreview').textContent = JSON.stringify(form, null, 2); }
+        $$(render).bind($$(form).name, $$(form).email, $$(form).msg);
+
+        document.getElementById('cSubmit').onclick = () =>
+            alert('Pretending to POST:\n' + JSON.stringify(form, null, 2));
+    </script>
+</body>
+</html>

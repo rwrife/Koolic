@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 12 State Store</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.store.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2em auto; padding: 0 1em; color: #222; }
+        h1 { margin-bottom: 0.2em; }
+        p.sub { color: #666; margin-top: 0; }
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; }
+        @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+        fieldset { border: 1px solid #ddd; border-radius: 6px; padding: 1em 1.25em; }
+        legend { padding: 0 0.4em; font-weight: 600; color: #444; }
+        label { display: block; margin: 0.4em 0; }
+        input, select, textarea { padding: 6px 8px; font-size: 1em; width: 100%;
+                                  box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { font-family: ui-monospace, Menlo, monospace; min-height: 100px; }
+        button { padding: 6px 14px; font-size: 1em; border-radius: 4px;
+                 border: 1px solid #ccc; background: #f8f8f8; cursor: pointer; margin-right: 6px; }
+        button.primary { background: #2e8b57; border-color: #2e8b57; color: white; }
+        button.danger  { background: #c0392b; border-color: #c0392b; color: white; }
+        .row { display: flex; gap: 0.5em; align-items: center; margin: 0.5em 0; }
+        .row .grow { flex: 1; }
+        pre { background: #f6f6f6; padding: 1em; border-radius: 4px; max-height: 220px; overflow: auto; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px;
+                 background: #4a90e2; color: white; font-size: 0.8em; }
+        .badge.local   { background: #2e8b57; }
+        .badge.session { background: #d99019; }
+        .badge.memory  { background: #888; }
+        .note { font-size: 0.85em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>State store</h1>
+    <p class="sub">
+        Three forms, each persisting to a different storage backend. Type into
+        any field, then reload the page or open this URL in another tab to
+        see what survives.
+    </p>
+
+    <div class="layout">
+
+        <!-- =============== localStorage =============== -->
+        <fieldset>
+            <legend><span class="badge local">local</span> Persistent across reloads + tabs</legend>
+            <p class="note">Survives reload, browser restart, and syncs across tabs of the same origin.</p>
+
+            <label>Display name <input id="lName" /></label>
+            <label>Email        <input id="lEmail" type="email" /></label>
+            <label>Theme
+                <select id="lTheme">
+                    <option>light</option>
+                    <option>dark</option>
+                    <option>auto</option>
+                </select>
+            </label>
+            <label>Newsletter <input id="lNews" type="checkbox" /></label>
+
+            <div class="row">
+                <button id="lReset" class="danger">Reset</button>
+                <span class="grow"></span>
+                <span class="note">Try opening this page in two tabs.</span>
+            </div>
+        </fieldset>
+
+        <!-- =============== sessionStorage =============== -->
+        <fieldset>
+            <legend><span class="badge session">session</span> Persists within this tab only</legend>
+            <p class="note">Survives reload within this tab; cleared when you close the tab.</p>
+
+            <label>Draft message <textarea id="sDraft" placeholder="Type a long message…"></textarea></label>
+
+            <div class="row">
+                <button id="sReset" class="danger">Clear draft</button>
+            </div>
+        </fieldset>
+
+        <!-- =============== memory =============== -->
+        <fieldset style="grid-column: 1 / -1">
+            <legend><span class="badge memory">memory</span> Shared singleton (lost on reload)</legend>
+            <p class="note">
+                Multiple scripts / components on the same page share one model.
+                Lost on full page reload. Useful for ephemeral cross-component state.
+            </p>
+
+            <div class="row">
+                <button id="mInc" class="primary">+1</button>
+                <button id="mDec">−1</button>
+                <button id="mReset" class="danger">Reset</button>
+                <span class="grow"></span>
+                Counter: <strong id="mCount">0</strong>
+            </div>
+        </fieldset>
+
+        <!-- =============== live inspector =============== -->
+        <fieldset style="grid-column: 1 / -1">
+            <legend>Live state inspector</legend>
+            <p class="note">All three stores serialized live. Mutations are reflected immediately.</p>
+            <pre id="inspector"></pre>
+        </fieldset>
+    </div>
+
+    <script>
+    // -----------------------------------------------------------------
+    // 1. Open three stores, one per backend.
+    //
+    //    Each call returns a Koolic-reactive plain object that's
+    //    auto-persisted (debounced) to its chosen storage. Calling
+    //    store(key, ...) again with the same key anywhere on the page
+    //    returns the same instance — so multiple scripts share state.
+    // -----------------------------------------------------------------
+    const prefs = koolic.store('user.prefs', {
+        name:  '',
+        email: '',
+        theme: 'light',
+        newsletter: false
+    }, { storage: 'local', version: 1 });
+
+    const draft = koolic.store('compose.draft', {
+        body: ''
+    }, { storage: 'session' });
+
+    const counter = koolic.store('counter', {
+        value: 0
+    }, { storage: 'memory' });
+
+    // -----------------------------------------------------------------
+    // 2. Two-way bind every input to its model property using Koolic.
+    //    Mutations on the model -> persisted automatically.
+    //    Input edits -> mutate the model via the bound input event.
+    // -----------------------------------------------------------------
+    $$('#lName').bind($$(prefs).name);
+    $$('#lEmail').bind($$(prefs).email);
+    $$('#lTheme').bind($$(prefs).theme);
+    $$('#lNews').bind($$(prefs).newsletter, 'checked');
+
+    $$('#sDraft').bind($$(draft).body);
+
+    $$('#mCount').bind($$(counter).value);
+
+    // -----------------------------------------------------------------
+    // 3. UI buttons for the memory counter.
+    // -----------------------------------------------------------------
+    $$('#mInc').on('click', () => counter.value = counter.value + 1);
+    $$('#mDec').on('click', () => counter.value = counter.value - 1);
+    $$('#mReset').on('click', () => koolic.store.reset('counter'));
+
+    $$('#lReset').on('click', () => koolic.store.reset('user.prefs'));
+    $$('#sReset').on('click', () => koolic.store.reset('compose.draft'));
+
+    // -----------------------------------------------------------------
+    // 4. Live inspector — re-renders on every change in any of the three
+    //    stores. Demonstrates that *all* store mutations are reactive,
+    //    not just the bound DOM ones.
+    // -----------------------------------------------------------------
+    function render() {
+        document.getElementById('inspector').textContent = JSON.stringify({
+            'user.prefs (local)':      prefs,
+            'compose.draft (session)': draft,
+            'counter (memory)':        counter
+        }, null, 2);
+    }
+    // Recompute on every change in any store. The function fires once
+    // on bind, then again on each input.
+    $$(render).bind(
+        $$(prefs).name, $$(prefs).email, $$(prefs).theme, $$(prefs).newsletter,
+        $$(draft).body,
+        $$(counter).value
+    );
+
+    // -----------------------------------------------------------------
+    // 5. Apply the theme preference to the page in real time.
+    // -----------------------------------------------------------------
+    $$(theme => {
+        document.body.style.background = theme === 'dark' ? '#1d1f21' : '#fff';
+        document.body.style.color      = theme === 'dark' ? '#ddd'    : '#222';
+    }).bind($$(prefs).theme);
+    </script>
+</body>
+</html>

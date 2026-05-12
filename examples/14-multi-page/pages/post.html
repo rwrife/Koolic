@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><title>Post · Kool SPA</title></head>
+<body>
+    <p><a data-route="/blog">← back to blog</a></p>
+    <h1>Post: <em id="postSlug">…</em></h1>
+    <p>
+        This page was fetched once and is being reused across every post.
+        The route's <code>enter</code> hook (in <code>index.html</code>)
+        populated the <code>#postSlug</code> element from the URL parameter.
+    </p>
+    <p>
+        That's the typical pattern: a generic template HTML file + a small
+        <code>enter</code> hook that fills it in for the current params.
+        No new fetch per post.
+    </p>
+</body>
+</html>

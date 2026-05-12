@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head><title>Home · Kool SPA</title></head>
+<body>
+    <h1>Welcome</h1>
+    <p>
+        This is a real, separate HTML file — open
+        <code>examples/14-multi-page/pages/home.html</code> in your editor.
+        It contains no shell, no scripts to wire up, no framework boilerplate.
+    </p>
+    <p>
+        The shell (header, footer, nav) lives in <code>index.html</code>. The
+        router fetches this file's <code>&lt;body&gt;</code> contents when you
+        visit <code>#/</code> and drops it into the shell's <code>#app</code>
+        container. No page reload.
+    </p>
+    <p style="margin-top:2em">
+        Try it: open DevTools' Network tab and click around. You'll see
+        <code>about.html</code>, <code>blog.html</code>, etc. arrive one at
+        a time — and only once each, because the router caches them.
+    </p>
+    <p><a data-route="/about">→ About this app</a></p>
+</body>
+</html>

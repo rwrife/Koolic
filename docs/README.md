@@ -23,6 +23,8 @@ in HTML**. This documentation is organized into three layers:
 | [Function binding](guide/function-binding.md) | Re-running a function when its inputs change |
 | [Animation](guide/animation.md) | `KoolAnimation`, lifecycle, chaining |
 | [Easings](guide/easings.md) | Named easings, custom functions, segmented easings |
+| [State store](guide/state-store.md) | Persist a reactive object across reloads / tabs |
+| [Router](guide/router.md) | Multi-page navigation without reloads, `:params`, hooks |
 
 ## Reference
 
@@ -50,6 +52,9 @@ no build step, no dependencies, just open them in a browser:
 | 10 | [`10-advanced-form.html`](../examples/10-advanced-form.html) | **Checkout-style form** — validation, computed totals, JSON submit |
 | —  | [`npm-usage/`](../examples/npm-usage) | **Install from npm + use in browser and Node** |
 | 11 | [`11-space-invaders.html`](../examples/11-space-invaders.html) | **Space Invaders** — full SVG game using only Koolic |
+| 12 | [`12-state-store.html`](../examples/12-state-store.html) | **State store** — persistent forms, cross-tab sync, shared singleton |
+| 13 | [`13-router.html`](../examples/13-router.html) | **Router** — multi-page shop SPA with `:id` params, 404, shared cart store |
+| 14 | [`14-multi-page/`](../examples/14-multi-page/) | **HTML page fetching** — each "page" is a separate `.html` file fetched on demand |
 
 ## Mental model in 30 seconds
 
