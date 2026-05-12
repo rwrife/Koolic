@@ -1,0 +1,13 @@
+# Files NOT to publish to npm.
+# The package.json "files" field is the allow-list; this is the deny-list
+# for everything else.
+node_modules/
+coverage/
+test/
+examples/
+.github/
+.gitignore
+.npmignore
+jest.config.js
+*.log
+.DS_Store

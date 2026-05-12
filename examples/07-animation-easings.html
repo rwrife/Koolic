@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 07 Easings</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.animate.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 880px; margin: 2em auto; padding: 0 1em; }
+        .row { display: grid; grid-template-columns: 180px 1fr; gap: 1em; align-items: center; margin: 6px 0; }
+        .track { position: relative; height: 32px; background: #f3f3f3; border-radius: 4px; }
+        .dot { position: absolute; top: 4px; width: 24px; height: 24px; border-radius: 50%; background: #4a90e2; }
+        button { padding: 8px 16px; font-size: 1em; }
+        code { background: #f4f4f4; padding: 0 4px; }
+    </style>
+</head>
+<body>
+    <h1>07 — Easings: side-by-side comparison</h1>
+    <p>Each track animates 0 → 720px / 1500ms with a different easing function.</p>
+
+    <button id="run">Run</button>
+    <div id="rows"></div>
+
+    <script>
+        const EASINGS = [
+            'linear',
+            'easeInSine', 'easeOutSine', 'easeInOutSine',
+            'easeInQuad', 'easeOutQuad', 'easeInOutQuad',
+            'easeInCubic', 'easeOutCubic', 'easeInOutCubic',
+            'easeOutBounce',
+            'easeOutElastic'
+        ];
+
+        const rowsEl = document.getElementById('rows');
+        const models = EASINGS.map(name => {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.innerHTML = `<code>${name}</code><div class="track"><div class="dot"></div></div>`;
+            rowsEl.appendChild(row);
+            const m = { x: 0 };
+            $$(row.querySelector('.dot')).bind($$(m).x, 'left');
+            return { name, m };
+        });
+
+        document.getElementById('run').onclick = () => {
+            for (const { name, m } of models) {
+                m.x = 0;
+                $$(m).x.animate(0, 720, 1500, name);
+            }
+        };
+    </script>
+</body>
+</html>

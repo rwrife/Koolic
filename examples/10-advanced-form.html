@@ -1,0 +1,418 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 10 Advanced Form (Checkout)</title>
+    <script src="../js/koolic.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+               max-width: 880px; margin: 2em auto; padding: 0 1em; color: #222; }
+        h1 { margin-bottom: 0.2em; }
+        p.sub { color: #666; margin-top: 0; }
+
+        .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2em; }
+        @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+        fieldset { border: 1px solid #ddd; border-radius: 6px; padding: 1em 1.25em; margin: 0 0 1em; }
+        legend { padding: 0 0.4em; font-weight: 600; color: #444; }
+
+        .row { display: grid; grid-template-columns: 130px 1fr; gap: 0.6em;
+               align-items: center; margin: 0.5em 0; }
+        .row.full { grid-template-columns: 1fr; }
+        .row .err { grid-column: 2 / -1; color: #c0392b; font-size: 0.85em; min-height: 1em; }
+
+        input, select { padding: 6px 8px; font-size: 1em; border: 1px solid #ccc;
+                        border-radius: 4px; font-family: inherit; }
+        input.invalid { border-color: #c0392b; background: #fff5f5; }
+        input.valid   { border-color: #2e8b57; }
+
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6em; }
+
+        button#submit { padding: 10px 16px; font-size: 1em; border: 0; border-radius: 4px;
+                        background: #2e8b57; color: white; cursor: pointer; }
+        button#submit:disabled { background: #aaa; cursor: not-allowed; }
+
+        .summary { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px;
+                   padding: 1em 1.25em; position: sticky; top: 1em; }
+        .summary .line { display: flex; justify-content: space-between; margin: 4px 0; }
+        .summary .total { font-weight: 700; border-top: 1px solid #ccc;
+                          padding-top: 6px; margin-top: 6px; }
+        pre#payload { background: #1d1f21; color: #c5c8c6; padding: 1em;
+                      border-radius: 6px; max-height: 240px; overflow: auto; font-size: 0.85em; }
+
+        .toast { margin-top: 1em; padding: 0.8em 1em; border-radius: 4px; background: #e8f4ff;
+                 border-left: 4px solid #4a90e2; }
+    </style>
+</head>
+<body>
+    <h1>Advanced form: checkout</h1>
+    <p class="sub">
+        A complete data-bound form. Every field is two-way bound to a model.
+        Validation is computed reactively. The submit button is disabled until
+        the form is valid, and a click produces the JSON payload you'd POST
+        to a REST endpoint.
+    </p>
+
+    <div class="layout">
+        <!-- ============ FORM ============ -->
+        <form id="checkout" autocomplete="off" onsubmit="event.preventDefault();">
+
+            <fieldset>
+                <legend>Contact</legend>
+
+                <div class="row">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" />
+                </div>
+                <div class="row"><span></span><span class="err" id="err-email"></span></div>
+
+                <div class="row">
+                    <label for="phone">Phone</label>
+                    <input id="phone" type="tel" placeholder="555-123-4567" />
+                </div>
+                <div class="row"><span></span><span class="err" id="err-phone"></span></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Shipping</legend>
+
+                <div class="grid2">
+                    <div class="row">
+                        <label for="firstName">First</label>
+                        <input id="firstName" />
+                    </div>
+                    <div class="row">
+                        <label for="lastName">Last</label>
+                        <input id="lastName" />
+                    </div>
+                </div>
+                <div class="row"><span></span><span class="err" id="err-name"></span></div>
+
+                <div class="row">
+                    <label for="address1">Address</label>
+                    <input id="address1" />
+                </div>
+                <div class="row"><span></span><span class="err" id="err-address1"></span></div>
+
+                <div class="grid2">
+                    <div class="row">
+                        <label for="city">City</label>
+                        <input id="city" />
+                    </div>
+                    <div class="row">
+                        <label for="zip">Zip</label>
+                        <input id="zip" inputmode="numeric" />
+                    </div>
+                </div>
+                <div class="row"><span></span><span class="err" id="err-zip"></span></div>
+
+                <div class="row">
+                    <label for="country">Country</label>
+                    <select id="country">
+                        <option value="US">United States</option>
+                        <option value="CA">Canada</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="DE">Germany</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Payment</legend>
+
+                <div class="row">
+                    <label for="card">Card number</label>
+                    <input id="card" inputmode="numeric" placeholder="16 digits" maxlength="19" />
+                </div>
+                <div class="row"><span></span><span class="err" id="err-card"></span></div>
+
+                <div class="grid2">
+                    <div class="row">
+                        <label for="exp">Expiry</label>
+                        <input id="exp" placeholder="MM/YY" maxlength="5" />
+                    </div>
+                    <div class="row">
+                        <label for="cvv">CVV</label>
+                        <input id="cvv" inputmode="numeric" maxlength="4" />
+                    </div>
+                </div>
+                <div class="row"><span></span><span class="err" id="err-payment"></span></div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Order</legend>
+
+                <div class="row">
+                    <label for="qty">Quantity</label>
+                    <input id="qty" type="number" min="1" max="99" value="1" />
+                </div>
+
+                <div class="row">
+                    <label for="gift">Gift wrap</label>
+                    <input id="gift" type="checkbox" />
+                </div>
+            </fieldset>
+
+            <button id="submit" type="submit" disabled>Place order</button>
+        </form>
+
+        <!-- ============ SUMMARY ============ -->
+        <aside>
+            <div class="summary">
+                <h3 style="margin-top:0">Order summary</h3>
+                <div class="line"><span id="lineQty">1</span> × Widget @ $<span id="lineUnit">19.99</span></div>
+                <div class="line"><span>Subtotal</span><span>$<span id="lineSubtotal">0.00</span></span></div>
+                <div class="line"><span>Gift wrap</span><span>$<span id="lineGift">0.00</span></span></div>
+                <div class="line"><span>Shipping</span><span>$<span id="lineShipping">0.00</span></span></div>
+                <div class="line"><span>Tax (8%)</span><span>$<span id="lineTax">0.00</span></span></div>
+                <div class="line total"><span>Total</span><span>$<span id="lineTotal">0.00</span></span></div>
+                <p style="font-size:0.8em;color:#666;margin-bottom:0">
+                    Free shipping over $50. Gift wrap adds $4.99.
+                </p>
+            </div>
+
+            <h3 style="margin-top:1.5em">REST payload preview</h3>
+            <p style="font-size:0.85em;color:#666;margin-top:-0.2em">
+                Updated live as you type. This is exactly what would be POSTed.
+            </p>
+            <pre id="payload">// click Place order</pre>
+            <div id="result"></div>
+        </aside>
+    </div>
+
+    <script>
+    // -----------------------------------------------------------------
+    // 1. The model — a single plain object, reactive in place.
+    // -----------------------------------------------------------------
+    const UNIT_PRICE = 19.99;
+    const GIFT_FEE = 4.99;
+    const TAX_RATE = 0.08;
+    const FREE_SHIP_THRESHOLD = 50;
+    const FLAT_SHIPPING = 6.00;
+
+    const model = {
+        contact:  { email: '', phone: '' },
+        shipping: { firstName: '', lastName: '', address1: '',
+                    city: '', zip: '', country: 'US' },
+        payment:  { card: '', exp: '', cvv: '' },
+        order:    { qty: 1, gift: false }
+    };
+
+    // -----------------------------------------------------------------
+    // 2. Bind every input to its model property.
+    //    Two-way: typing updates the model; setting the model updates the input.
+    // -----------------------------------------------------------------
+    const $m = $$(model);
+
+    $$('#email').bind($m.contact.email);
+    $$('#phone').bind($m.contact.phone);
+
+    $$('#firstName').bind($m.shipping.firstName);
+    $$('#lastName').bind($m.shipping.lastName);
+    $$('#address1').bind($m.shipping.address1);
+    $$('#city').bind($m.shipping.city);
+    $$('#zip').bind($m.shipping.zip);
+    $$('#country').bind($m.shipping.country);
+
+    $$('#card').bind($m.payment.card);
+    $$('#exp').bind($m.payment.exp);
+    $$('#cvv').bind($m.payment.cvv);
+
+    $$('#qty').bind($m.order.qty);
+    $$('#gift').bind($m.order.gift, 'checked');
+
+    // -----------------------------------------------------------------
+    // 3. Validators — pure functions taking a value, returning '' (ok)
+    //    or an error string.
+    // -----------------------------------------------------------------
+    const V = {
+        email:   v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address',
+        phone:   v => /^[\d\-\s().+]{7,}$/.test(v) ? '' : 'Enter a valid phone number',
+        name:    v => v.trim().length >= 2 ? '' : 'Required',
+        address: v => v.trim().length >= 4 ? '' : 'Enter a street address',
+        zip:     v => /^\d{5}(-\d{4})?$/.test(v) ? '' : 'Enter a 5-digit zip',
+        card:    v => {
+            const digits = String(v).replace(/\D/g, '');
+            if (digits.length < 13 || digits.length > 19) return 'Card number length looks wrong';
+            return luhn(digits) ? '' : 'Card number failed Luhn check';
+        },
+        exp:     v => {
+            const m = /^(\d{2})\/(\d{2})$/.exec(v);
+            if (!m) return 'Format MM/YY';
+            const mm = +m[1], yy = +m[2];
+            if (mm < 1 || mm > 12) return 'Month must be 01–12';
+            const now = new Date();
+            const expDate = new Date(2000 + yy, mm, 0, 23, 59, 59);
+            return expDate >= now ? '' : 'Card expired';
+        },
+        cvv:     v => /^\d{3,4}$/.test(v) ? '' : '3 or 4 digits',
+        qty:     v => Number.isInteger(+v) && +v >= 1 && +v <= 99 ? '' : '1–99'
+    };
+
+    // Standard Luhn-checksum for credit-card numbers.
+    function luhn(num) {
+        let sum = 0, alt = false;
+        for (let i = num.length - 1; i >= 0; i--) {
+            let n = +num[i];
+            if (alt) { n *= 2; if (n > 9) n -= 9; }
+            sum += n;
+            alt = !alt;
+        }
+        return sum % 10 === 0;
+    }
+
+    // -----------------------------------------------------------------
+    // 4. Reactive validation. Each per-field validator is bound to its
+    //    field via $$(fn).bind(...). When the field changes, the
+    //    function re-runs, updates the model.errors map, and updates
+    //    the DOM's error message + input border.
+    // -----------------------------------------------------------------
+    model.errors = {
+        email: '', phone: '', name: '', address1: '', zip: '',
+        card: '', exp: '', cvv: '', qty: ''
+    };
+    $$(model);  // re-wrap to pick up the new `errors` sub-object
+
+    function bindValidator(fieldId, modelHandle, validator, errKey, errEl) {
+        $$(function (val) {
+            const msg = validator(val);
+            model.errors[errKey] = msg;
+            const el = document.getElementById(fieldId);
+            el.classList.toggle('invalid', !!msg && val !== '');
+            el.classList.toggle('valid', !msg && val !== '');
+            if (errEl) document.getElementById(errEl).textContent = msg && val !== '' ? msg : '';
+        }).bind(modelHandle);
+    }
+
+    bindValidator('email',     $m.contact.email,       V.email,   'email',    'err-email');
+    bindValidator('phone',     $m.contact.phone,       V.phone,   'phone',    'err-phone');
+    bindValidator('firstName', $m.shipping.firstName,  V.name,    'name',     'err-name');
+    bindValidator('lastName',  $m.shipping.lastName,   V.name,    'name',     'err-name');
+    bindValidator('address1',  $m.shipping.address1,   V.address, 'address1', 'err-address1');
+    bindValidator('zip',       $m.shipping.zip,        V.zip,     'zip',      'err-zip');
+    bindValidator('card',      $m.payment.card,        V.card,    'card',     'err-card');
+    bindValidator('exp',       $m.payment.exp,         V.exp,     'exp',      'err-payment');
+    bindValidator('cvv',       $m.payment.cvv,         V.cvv,     'cvv',      'err-payment');
+    bindValidator('qty',       $m.order.qty,           V.qty,     'qty',      null);
+
+    // -----------------------------------------------------------------
+    // 5. Derived state: totals and form-validity, computed via function
+    //    binding. They re-run automatically when their inputs change.
+    // -----------------------------------------------------------------
+    function recomputeTotals(qty, gift) {
+        const q        = Math.max(0, +qty || 0);
+        const subtotal = q * UNIT_PRICE;
+        const giftFee  = gift ? GIFT_FEE : 0;
+        const shipping = subtotal >= FREE_SHIP_THRESHOLD ? 0 : (q > 0 ? FLAT_SHIPPING : 0);
+        const tax      = (subtotal + giftFee) * TAX_RATE;
+        const total    = subtotal + giftFee + shipping + tax;
+
+        document.getElementById('lineQty').textContent       = q;
+        document.getElementById('lineUnit').textContent      = UNIT_PRICE.toFixed(2);
+        document.getElementById('lineSubtotal').textContent  = subtotal.toFixed(2);
+        document.getElementById('lineGift').textContent      = giftFee.toFixed(2);
+        document.getElementById('lineShipping').textContent  = shipping.toFixed(2);
+        document.getElementById('lineTax').textContent       = tax.toFixed(2);
+        document.getElementById('lineTotal').textContent     = total.toFixed(2);
+
+        // stash on the model so the payload picks it up
+        model.totals = { subtotal, giftFee, shipping, tax, total };
+    }
+    $$(recomputeTotals).bind($m.order.qty, $m.order.gift);
+
+    // Recompute the JSON preview + submit-enabled state on every model change.
+    function refreshPreview() {
+        const valid = isFormValid();
+        document.getElementById('submit').disabled = !valid;
+        document.getElementById('payload').textContent =
+            JSON.stringify(buildPayload(), null, 2);
+    }
+    // Bind to every field that contributes to validity/payload.
+    $$(refreshPreview).bind(
+        $m.contact.email, $m.contact.phone,
+        $m.shipping.firstName, $m.shipping.lastName, $m.shipping.address1,
+        $m.shipping.city, $m.shipping.zip, $m.shipping.country,
+        $m.payment.card, $m.payment.exp, $m.payment.cvv,
+        $m.order.qty, $m.order.gift
+    );
+
+    function isFormValid() {
+        return (
+            V.email(model.contact.email) === '' &&
+            V.phone(model.contact.phone) === '' &&
+            V.name(model.shipping.firstName) === '' &&
+            V.name(model.shipping.lastName) === '' &&
+            V.address(model.shipping.address1) === '' &&
+            model.shipping.city.trim().length > 0 &&
+            V.zip(model.shipping.zip) === '' &&
+            V.card(model.payment.card) === '' &&
+            V.exp(model.payment.exp) === '' &&
+            V.cvv(model.payment.cvv) === '' &&
+            V.qty(model.order.qty) === ''
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // 6. The submit handler — convert the (now validated) model into
+    //    the exact JSON shape your REST API expects, then call fetch().
+    // -----------------------------------------------------------------
+    function buildPayload() {
+        return {
+            customer: {
+                email: model.contact.email.trim(),
+                phone: model.contact.phone.replace(/[^\d+]/g, '')
+            },
+            shipTo: {
+                firstName: model.shipping.firstName.trim(),
+                lastName:  model.shipping.lastName.trim(),
+                line1:     model.shipping.address1.trim(),
+                city:      model.shipping.city.trim(),
+                postalCode: model.shipping.zip.trim(),
+                country:   model.shipping.country
+            },
+            payment: {
+                // Real apps tokenize on the client; never POST raw card data.
+                cardLast4: String(model.payment.card).replace(/\D/g, '').slice(-4),
+                expiry:    model.payment.exp,
+                // cvv intentionally never shown in the payload preview
+            },
+            items: [
+                { sku: 'WIDGET-001', name: 'Widget', qty: +model.order.qty, unit: UNIT_PRICE }
+            ],
+            options: { giftWrap: !!model.order.gift },
+            totals: model.totals || {}
+        };
+    }
+
+    document.getElementById('submit').addEventListener('click', async () => {
+        if (!isFormValid()) return;
+        const payload = buildPayload();
+        const result = document.getElementById('result');
+        result.innerHTML = '<div class="toast">Submitting…</div>';
+
+        try {
+            // In a real app:
+            //   await fetch('/api/orders', {
+            //       method: 'POST',
+            //       headers: { 'Content-Type': 'application/json' },
+            //       body: JSON.stringify(payload)
+            //   });
+            await new Promise(r => setTimeout(r, 600));  // simulated
+            result.innerHTML = `<div class="toast">
+                ✓ Order placed. (Payload above is what was POSTed.)
+            </div>`;
+        } catch (err) {
+            result.innerHTML = `<div class="toast" style="border-color:#c0392b">
+                ✗ Submit failed: ${err.message}
+            </div>`;
+        }
+    });
+
+    // -----------------------------------------------------------------
+    // 7. Seed the form with one demo value so the preview isn't blank.
+    // -----------------------------------------------------------------
+    model.order.qty = 1;
+    refreshPreview();
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "name": "koolic",
+  "author": "Ryan Rife <rwrife@gmail.com>",
+  "version": "2.0.0",
+  "description": "Simple, dependency-free data-binding library for HTML — jQuery meets React, kept small.",
+  "main": "js/koolic.js",
+  "exports": {
+    ".": {
+      "require": "./js/koolic.js",
+      "default": "./js/koolic.js"
+    },
+    "./animate": {
+      "require": "./js/koolic.animate.js",
+      "default": "./js/koolic.animate.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "js/koolic.js",
+    "js/koolic.animate.js",
+    "README.md",
+    "LICENSE",
+    "docs/"
+  ],
+  "scripts": {
+    "test": "jest",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "data-binding",
+    "two-way-binding",
+    "reactive",
+    "dom",
+    "animation",
+    "easing",
+    "jquery",
+    "lightweight",
+    "no-dependencies",
+    "vanilla"
+  ],
+  "homepage": "https://github.com/rwrife/Koolic#readme",
+  "bugs": {
+    "url": "https://github.com/rwrife/Koolic/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rwrife/Koolic.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
+  }
+}
+

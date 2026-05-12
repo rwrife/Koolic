@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 05 Function Binding</title>
+    <script src="../js/koolic.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; }
+        input { padding: 4px 8px; font-size: 1em; }
+        #out { margin-top: 1em; padding: 1em; background: #f6f6f6; border-radius: 6px; min-height: 4em; }
+    </style>
+</head>
+<body>
+    <h1>05 — Function binding</h1>
+    <p>A function gets re-invoked every time any of its bound properties change.</p>
+
+    <label>First: <input id="first" /></label>
+    <label>Last:  <input id="last" /></label>
+
+    <div id="out"></div>
+
+    <script>
+        const person = { first: 'Ada', last: 'Lovelace' };
+
+        $$('#first').bind($$(person).first);
+        $$('#last').bind($$(person).last);
+
+        function render(first, last) {
+            document.getElementById('out').textContent =
+                `Hello ${first} ${last}! Initials: ${first[0]}.${last[0]}.`;
+        }
+
+        // Runs once now, and again on every change.
+        $$(render).bind($$(person).first, $$(person).last);
+    </script>
+</body>
+</html>

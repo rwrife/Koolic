@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 09 Segmented Easing</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.animate.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 880px; margin: 2em auto; padding: 0 1em; }
+        .row { display: grid; grid-template-columns: 240px 1fr; gap: 1em; align-items: center; margin: 6px 0; }
+        .track { position: relative; height: 32px; background: #f3f3f3; border-radius: 4px; }
+        .dot   { position: absolute; top: 4px; width: 24px; height: 24px; border-radius: 50%; background: #4a90e2; }
+        button { padding: 8px 16px; font-size: 1em; }
+        code   { background: #f4f4f4; padding: 0 4px; }
+        pre    { background: #f8f8f8; padding: 1em; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>09 — Segmented (piecewise) easing</h1>
+    <p>
+        Stitch multiple easings together across the timeline. Each segment is
+        <code>{ to: &lt;fraction in (0,1]&gt;, easing: 'name' | function }</code>,
+        and segments must end at <code>to: 1</code>.
+    </p>
+
+    <pre>$$(model).x.animate(0, 720, 2500, [
+  { to: 0.20, easing: 'easeInSine'  },
+  { to: 0.80, easing: 'linear'      },
+  { to: 1.00, easing: 'easeOutSine' }
+]);</pre>
+
+    <button id="run">Run all</button>
+
+    <div class="row"><code>linear (reference)</code>           <div class="track"><div id="d1" class="dot"></div></div></div>
+    <div class="row"><code>slow-in / linear / slow-out</code>  <div class="track"><div id="d2" class="dot"></div></div></div>
+    <div class="row"><code>bounce-then-elastic-settle</code>   <div class="track"><div id="d3" class="dot"></div></div></div>
+    <div class="row"><code>stop-and-go (4 ramps)</code>        <div class="track"><div id="d4" class="dot"></div></div></div>
+
+    <script>
+        const models = [
+            { id: '#d1', m: { x: 0 }, easing: 'linear' },
+            { id: '#d2', m: { x: 0 }, easing: [
+                { to: 0.20, easing: 'easeInSine'  },
+                { to: 0.80, easing: 'linear'      },
+                { to: 1.00, easing: 'easeOutSine' }
+            ]},
+            { id: '#d3', m: { x: 0 }, easing: [
+                { to: 0.55, easing: 'easeOutBounce'  },
+                { to: 1.00, easing: 'easeOutElastic' }
+            ]},
+            { id: '#d4', m: { x: 0 }, easing: [
+                { to: 0.30, easing: 'easeOutCubic'   },
+                { to: 0.55, easing: 'easeInOutSine'  },
+                { to: 0.75, easing: 'easeOutCubic'   },
+                { to: 1.00, easing: 'easeInOutSine'  }
+            ]}
+        ];
+
+        for (const r of models) $$(r.id).bind($$(r.m).x, 'left');
+
+        document.getElementById('run').onclick = () => {
+            for (const r of models) {
+                r.m.x = 0;
+                $$(r.m).x.animate(0, 720, 2500, r.easing);
+            }
+        };
+    </script>
+</body>
+</html>

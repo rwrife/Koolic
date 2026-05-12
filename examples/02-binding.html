@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 02 Property to Property Binding</title>
+    <script src="../js/koolic.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; }
+        .pair { display: flex; gap: 1em; margin: 1em 0; }
+        .card { flex: 1; padding: 1em; border: 1px solid #ddd; border-radius: 6px; }
+        button { margin-right: 0.5em; }
+    </style>
+</head>
+<body>
+    <h1>02 — Two-way property binding</h1>
+    <p>Bind <code>employee.name</code> to <code>person.name</code>. Changes propagate both ways.</p>
+
+    <div class="pair">
+        <div class="card">
+            <h3>person</h3><pre id="personJson"></pre>
+            <button id="setRyan">Set "Ryan"</button>
+            <button id="setBob">Set "Bob"</button>
+        </div>
+        <div class="card">
+            <h3>employee</h3><pre id="employeeJson"></pre>
+            <button id="setSue">Set "Sue"</button>
+        </div>
+    </div>
+
+    <script>
+        const person = { name: 'Ryan' };
+        const employee = { name: 'John' };
+
+        // Argument side wins the initial sync: employee.name becomes "Ryan".
+        $$(employee).name.bind($$(person).name);
+
+        function render() {
+            document.getElementById('personJson').textContent = JSON.stringify(person, null, 2);
+            document.getElementById('employeeJson').textContent = JSON.stringify(employee, null, 2);
+        }
+        $$(person).name.onChange(render);
+        $$(employee).name.onChange(render);
+        render();
+
+        document.getElementById('setRyan').onclick = () => { person.name = 'Ryan'; };
+        document.getElementById('setBob').onclick = () => { person.name = 'Bob'; };
+        document.getElementById('setSue').onclick = () => { employee.name = 'Sue'; };
+    </script>
+</body>
+</html>

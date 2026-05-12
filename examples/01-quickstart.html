@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 01 Quickstart</title>
+    <script src="../js/koolic.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; }
+        code { background: #f4f4f4; padding: 0 4px; }
+        .box { padding: 0.75em; margin: 1em 0; border: 1px solid #ddd; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>01 — Quickstart</h1>
+    <p>The simplest thing: wrap a plain object, read/write its values, listen for changes.</p>
+
+    <div class="box">Current name: <strong id="display">—</strong></div>
+    <button id="rename">Set name to "Bob"</button>
+    <button id="age">+1 year</button>
+
+    <pre id="log" style="background:#f8f8f8;padding:1em;height:120px;overflow:auto"></pre>
+
+    <script>
+        const person = { name: 'Ryan', age: 21 };
+
+        // Wrap with $$ (alias for koolic). Property access on the wrapper
+        // returns KoolProperty handles. The underlying object is also
+        // instrumented, so direct mutation (person.name = "x") works too.
+        const $person = $$(person);
+
+        $person.name.onChange((oldVal, newVal) => {
+            log(`name: ${oldVal} -> ${newVal}`);
+            document.getElementById('display').textContent = newVal;
+        });
+        $person.age.onChange((o, n) => log(`age: ${o} -> ${n}`));
+
+        document.getElementById('display').textContent = person.name;
+
+        document.getElementById('rename').onclick = () => { person.name = 'Bob'; };
+        document.getElementById('age').onclick = () => { person.age = person.age + 1; };
+
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.textContent += msg + '\n';
+            el.scrollTop = el.scrollHeight;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 03 DOM Binding</title>
+    <script src="../js/koolic.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em; }
+        label { display:block; margin: 0.5em 0; }
+        input, select { padding: 4px 8px; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <h1>03 — DOM binding</h1>
+    <p>Two inputs and a label, all bound to the same property. Type in one — the other updates live.</p>
+
+    <label>Name (input A): <input id="a" /></label>
+    <label>Name (input B): <input id="b" /></label>
+    <label>Age:
+        <select id="age">
+            <option value="13">13</option>
+            <option value="21">21</option>
+            <option value="25">25</option>
+        </select>
+    </label>
+
+    <div style="margin-top:1em;padding:1em;border:1px solid #ddd;border-radius:6px">
+        Hello <span id="greeting"></span>, you are <span id="ageDisplay"></span>.
+    </div>
+
+    <script>
+        const person = { name: 'Ryan', age: 21 };
+
+        $$('#a').bind($$(person).name);
+        $$('#b').bind($$(person).name);
+        $$('#greeting').bind($$(person).name);
+
+        $$('#age').bind($$(person).age);
+        $$('#ageDisplay').bind($$(person).age);
+    </script>
+</body>
+</html>

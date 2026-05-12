@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 06 Animation Basics</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.animate.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; }
+        .track { position: relative; height: 60px; margin: 1em 0; background: #f3f3f3; border-radius: 6px; }
+        .ball { position: absolute; top: 10px; width: 40px; height: 40px; border-radius: 50%; background: #4a90e2; }
+        button { padding: 6px 12px; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <h1>06 — Animation basics</h1>
+    <p>Linear animation, with ping-pong chained via <code>.onDone()</code>.</p>
+
+    <div class="track"><div id="ball" class="ball"></div></div>
+    <button id="go">Start ping-pong</button>
+
+    <script>
+        const ani = { left: 0 };
+        $$('#ball').bind($$(ani).left, 'left');   // 'left' alias auto-suffixes 'px'
+
+        function pingPong() {
+            $$(ani).left.animate(0, 600, 1200).onDone(() => {
+                $$(ani).left.animate(600, 0, 1200).onDone(pingPong);
+            });
+        }
+
+        document.getElementById('go').onclick = pingPong;
+    </script>
+</body>
+</html>

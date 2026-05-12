@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — 08 Bouncing Ball</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.animate.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; }
+        .stage {
+            position: relative; height: 320px;
+            background: linear-gradient(#cfe7ff, #e8f4ff);
+            border-radius: 6px; overflow: hidden;
+            border: 1px solid #b8d4ec;
+        }
+        .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: #6c8b3e; }
+        #ball {
+            position: absolute; width: 50px; height: 50px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff8b8b, #c0392b);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button { padding: 8px 16px; font-size: 1em; margin-right: 0.5em; }
+    </style>
+</head>
+<body>
+    <h1>08 — Bouncing ball (easeOutBounce)</h1>
+    <p>Vertical bounce + horizontal slide as two independent animations on the same model.</p>
+
+    <div class="stage">
+        <div id="ball"></div>
+        <div class="ground"></div>
+    </div>
+    <p>
+        <button id="drop">Drop</button>
+        <button id="hop">Hop across</button>
+    </p>
+
+    <script>
+        const ball = { x: 20, y: 0 };
+        $$('#ball').bind($$(ball).x, 'left');
+        $$('#ball').bind($$(ball).y, 'top');
+
+        document.getElementById('drop').onclick = () => {
+            ball.y = 0;
+            $$(ball).y.animate(0, 258, 1400, 'easeOutBounce');
+        };
+
+        document.getElementById('hop').onclick = () => {
+            ball.x = 20; ball.y = 0;
+            $$(ball).x.animate(20, 620, 2000, 'easeOutSine');
+            $$(ball).y.animate(0, 258, 2000, 'easeOutBounce');
+        };
+    </script>
+</body>
+</html>
