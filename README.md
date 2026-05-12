@@ -134,6 +134,7 @@ Open these directly in a browser — no server required.
 | [`examples/09-animation-segmented.html`](examples/09-animation-segmented.html) | Segmented (piecewise) easing |
 | [`examples/10-advanced-form.html`](examples/10-advanced-form.html) | **Checkout-style form** — multi-field validation, computed totals, JSON payload for REST submit |
 | [`examples/npm-usage/`](examples/npm-usage) | **Install Koolic from npm** and use it in a browser page + a Node script |
+| [`examples/11-space-invaders.html`](examples/11-space-invaders.html) | **Space Invaders** — full SVG arcade game; entities are reactive Koolic models, game loop just mutates state |
 
 ## Documentation
 

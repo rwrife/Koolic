@@ -1,0 +1,716 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic — Space Invaders</title>
+    <script src="../js/koolic.js"></script>
+    <script src="../js/koolic.animate.js"></script>
+    <style>
+        :root { color-scheme: dark; }
+        html, body { margin: 0; height: 100%; background: #000; color: #b6ffce; font-family: ui-monospace, Menlo, monospace; }
+        body { display: flex; flex-direction: column; align-items: center; padding: 1em; box-sizing: border-box; }
+        h1 { margin: 0 0 0.5em; letter-spacing: 0.2em; font-size: 1.4em; color: #b6ffce; }
+        .hud { display: flex; gap: 2em; font-size: 1.1em; margin-bottom: 0.5em; }
+        .hud .label { color: #6b8b73; margin-right: 0.4em; }
+        .stage-wrap { position: relative; }
+        svg#stage {
+            background: #000;
+            border: 1px solid #1d3a25;
+            box-shadow: 0 0 40px rgba(50,230,100,0.15);
+            display: block;
+            max-width: 100%;
+        }
+        #overlay {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.78);
+            text-align: center;
+            transition: opacity 0.25s;
+        }
+        #overlay h2 { font-size: 2.2em; letter-spacing: 0.25em; color: #b6ffce; margin: 0 0 0.3em; }
+        #overlay p  { color: #6b8b73; margin: 0.3em 0; }
+        #overlay button {
+            margin-top: 1.5em; padding: 0.7em 2em; font-family: inherit; font-size: 1em;
+            background: transparent; color: #b6ffce; border: 1px solid #2e8b57; border-radius: 4px;
+            cursor: pointer; letter-spacing: 0.2em;
+        }
+        #overlay button:hover { background: rgba(46,139,87,0.2); }
+        .footer { color: #4a6450; font-size: 0.8em; margin-top: 0.8em; }
+        kbd { background: #1d3a25; padding: 1px 6px; border-radius: 3px; color: #b6ffce; }
+    </style>
+</head>
+<body>
+    <h1>SPACE&nbsp;INVADERS</h1>
+    <div class="hud">
+        <span><span class="label">SCORE</span><span id="score">0</span></span>
+        <span><span class="label">HI</span><span id="hi">0</span></span>
+        <span><span class="label">LIVES</span><span id="lives">3</span></span>
+        <span><span class="label">LEVEL</span><span id="level">1</span></span>
+    </div>
+
+    <div class="stage-wrap">
+        <svg id="stage" viewBox="0 0 800 600" width="800" height="600">
+            <defs>
+                <radialGradient id="explo" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%"  stop-color="#fff"   stop-opacity="1"/>
+                    <stop offset="40%" stop-color="#ffd24a" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#ff4040" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="ufoGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ff5fff"/>
+                    <stop offset="100%" stop-color="#7a1f7a"/>
+                </linearGradient>
+            </defs>
+
+            <!-- starfield -->
+            <g id="stars"></g>
+
+            <!-- shields -->
+            <g id="shields"></g>
+
+            <!-- aliens -->
+            <g id="aliens"></g>
+
+            <!-- ufo (hidden by default) -->
+            <g id="ufo" style="display:none">
+                <ellipse cx="0" cy="0" rx="28" ry="9" fill="url(#ufoGrad)"/>
+                <rect x="-8" y="-14" width="16" height="8" rx="4" fill="#ffe6ff"/>
+                <circle cx="-18" cy="0" r="3" fill="#fff"/>
+                <circle cx="0"   cy="0" r="3" fill="#fff"/>
+                <circle cx="18"  cy="0" r="3" fill="#fff"/>
+            </g>
+
+            <!-- bullets (player + alien) -->
+            <g id="bullets"></g>
+
+            <!-- player ship -->
+            <g id="player">
+                <rect x="-2" y="-18" width="4" height="6" fill="#b6ffce"/>
+                <rect x="-14" y="-12" width="28" height="6" fill="#b6ffce"/>
+                <rect x="-20" y="-6" width="40" height="10" fill="#b6ffce"/>
+            </g>
+
+            <!-- particle explosions -->
+            <g id="particles"></g>
+
+            <!-- ground line -->
+            <line x1="0" y1="560" x2="800" y2="560" stroke="#2e8b57" stroke-width="1"/>
+        </svg>
+
+        <div id="overlay">
+            <h2 id="msg">SPACE INVADERS</h2>
+            <p id="hint"><kbd>←</kbd> <kbd>→</kbd> move &nbsp;·&nbsp; <kbd>Space</kbd> fire &nbsp;·&nbsp; <kbd>P</kbd> pause</p>
+            <button id="startBtn">START</button>
+        </div>
+    </div>
+
+    <p class="footer">
+        Built with <a style="color:#b6ffce" href="https://github.com/rwrife/Koolic">Koolic</a> and SVG.
+        Every entity's position is bound to a reactive model; the game loop just mutates state.
+    </p>
+
+    <script>
+    // =================================================================
+    //  Space Invaders — Koolic + SVG
+    //
+    //  Architecture
+    //    1. Reactive game state lives on `game` (score, lives, level,
+    //       phase). HUD elements + the overlay are *bound* to it. No
+    //       manual DOM updates for UI.
+    //
+    //    2. Every entity (player, alien, bullet, particle, ufo) is a
+    //       plain object wrapped with $$(...). Its position properties
+    //       are bound to its SVG <g>'s transform attribute via function
+    //       binding. Move the entity by mutating the object; the SVG
+    //       follows.
+    //
+    //    3. The game loop is a requestAnimationFrame tick that updates
+    //       *the model*. Koolic does the rendering.
+    // =================================================================
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const STAGE_W = 800, STAGE_H = 600;
+    const PLAYER_Y = 540;
+    const ALIEN_W = 36, ALIEN_H = 28;          // grid cell size
+    const ROWS = 5, COLS = 11;
+    const ALIEN_TYPES = [                      // top row -> bottom row
+        { name: 'squid',  points: 30, color: '#ff77ff' },
+        { name: 'crab',   points: 20, color: '#ffd24a' },
+        { name: 'crab',   points: 20, color: '#ffd24a' },
+        { name: 'octopus',points: 10, color: '#5fffaa' },
+        { name: 'octopus',points: 10, color: '#5fffaa' }
+    ];
+    const HI_KEY = 'koolic-invaders-hi';
+
+    // ---- The reactive game state ------------------------------------
+    const game = {
+        score: 0,
+        hi: +(localStorage.getItem(HI_KEY) || 0),
+        lives: 3,
+        level: 1,
+        phase: 'menu',           // 'menu' | 'playing' | 'paused' | 'gameover' | 'win'
+        message: 'SPACE INVADERS',
+        hint: 'Arrows to move, Space to fire'
+    };
+    const $game = $$(game);
+
+    // ---- HUD bindings (UI follows model automatically) --------------
+    $$('#score').bind($game.score);
+    $$('#hi').bind($game.hi);
+    $$('#lives').bind($game.lives);
+    $$('#level').bind($game.level);
+    $$('#msg').bind($game.message);
+    $$('#hint').bind($game.hint);
+
+    // Overlay visibility driven by phase.
+    $$(function (phase) {
+        const overlay = document.getElementById('overlay');
+        const showing = phase !== 'playing';
+        overlay.style.opacity = showing ? '1' : '0';
+        overlay.style.pointerEvents = showing ? 'auto' : 'none';
+        document.getElementById('startBtn').textContent =
+            phase === 'menu' ? 'START'
+            : phase === 'paused' ? 'RESUME'
+            : phase === 'gameover' ? 'PLAY AGAIN'
+            : phase === 'win' ? 'NEXT WAVE'
+            : 'GO';
+    }).bind($game.phase);
+
+    // Update hi-score whenever score rises above it.
+    $game.score.onChange((_, v) => { if (v > game.hi) game.hi = v; });
+    $game.hi.onChange((_, v) => localStorage.setItem(HI_KEY, String(v)));
+
+    // =================================================================
+    //  Starfield (decorative)
+    // =================================================================
+    const starsG = document.getElementById('stars');
+    for (let i = 0; i < 60; i++) {
+        const s = document.createElementNS(SVG_NS, 'circle');
+        s.setAttribute('cx', Math.random() * STAGE_W);
+        s.setAttribute('cy', Math.random() * (STAGE_H - 80));
+        s.setAttribute('r', Math.random() < 0.85 ? 0.5 : 1);
+        s.setAttribute('fill', '#1d3a25');
+        starsG.appendChild(s);
+    }
+
+    // =================================================================
+    //  Helpers — SVG entity factory bound to a Koolic model
+    //
+    //  bindEntity(elem, model[, transform])
+    //    Re-renders `elem`'s transform whenever model.x or model.y
+    //    changes. `transform` is an optional builder; default is
+    //    `translate(x, y)`.
+    // =================================================================
+    function bindEntity(elem, model, transform) {
+        transform = transform || ((x, y) => `translate(${x},${y})`);
+        $$((x, y) => { elem.setAttribute('transform', transform(x, y)); })
+            .bind($$(model).x, $$(model).y);
+        // visibility from `visible` property if present
+        if ('visible' in model) {
+            $$((v) => { elem.style.display = v ? '' : 'none'; })
+                .bind($$(model).visible);
+        }
+    }
+
+    // =================================================================
+    //  Player ship
+    // =================================================================
+    const player = { x: STAGE_W / 2, y: PLAYER_Y, visible: true, invuln: 0 };
+    bindEntity(document.getElementById('player'), player);
+
+    // Blink the ship when invulnerable.
+    $$((iv) => {
+        document.getElementById('player').style.opacity =
+            iv > 0 && Math.floor(iv * 8) % 2 ? '0.25' : '1';
+    }).bind($$(player).invuln);
+
+    // =================================================================
+    //  Aliens — 11 × 5 grid, each a reactive model + SVG group.
+    //
+    //  Sprite design: each alien is a small grid of <rect>s. Two
+    //  "frames" (A and B) are toggled together to give the classic
+    //  shuffle animation as the swarm advances.
+    // =================================================================
+    const SPRITES = {
+        // 8 wide x 8 tall pixel-art, two frames
+        squid: [
+            ['00011000','00111100','01111110','11011011','11111111','00100100','01011010','10100101'],
+            ['00011000','00111100','01111110','11011011','11111111','01011010','10100101','01000010']
+        ],
+        crab: [
+            ['00100100','00100100','01111110','11011011','11111111','11111111','10100101','01011010'],
+            ['00100100','10100101','11111111','11011011','11111111','01111110','00100100','01000010']
+        ],
+        octopus: [
+            ['00111100','01111110','11111111','11011011','11111111','00100100','01011010','10000001'],
+            ['00111100','01111110','11111111','11011011','11111111','00100100','01000010','00100100']
+        ]
+    };
+
+    function buildAlienSprite(typeName, color, frame) {
+        const g = document.createElementNS(SVG_NS, 'g');
+        const grid = SPRITES[typeName][frame];
+        const size = 3;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (grid[r][c] === '1') {
+                    const rect = document.createElementNS(SVG_NS, 'rect');
+                    rect.setAttribute('x', c * size - 12);
+                    rect.setAttribute('y', r * size - 12);
+                    rect.setAttribute('width', size);
+                    rect.setAttribute('height', size);
+                    rect.setAttribute('fill', color);
+                    g.appendChild(rect);
+                }
+            }
+        }
+        return g;
+    }
+
+    const aliensG = document.getElementById('aliens');
+    let aliens = [];      // [{ model, el, frameA, frameB, type }]
+    let frameFlag = 0;    // toggled each swarm step
+
+    function spawnSwarm() {
+        // Clear previous.
+        aliens.forEach(a => a.el.remove());
+        aliens = [];
+
+        const startX = 70;
+        const startY = 90;
+        for (let row = 0; row < ROWS; row++) {
+            const type = ALIEN_TYPES[row];
+            for (let col = 0; col < COLS; col++) {
+                const model = {
+                    x: startX + col * ALIEN_W,
+                    y: startY + row * ALIEN_H,
+                    visible: true,
+                    points: type.points,
+                    row: row, col: col
+                };
+                const wrap = document.createElementNS(SVG_NS, 'g');
+                const frameA = buildAlienSprite(type.name, type.color, 0);
+                const frameB = buildAlienSprite(type.name, type.color, 1);
+                frameB.style.display = 'none';
+                wrap.appendChild(frameA);
+                wrap.appendChild(frameB);
+                aliensG.appendChild(wrap);
+                bindEntity(wrap, model);
+                aliens.push({ model, el: wrap, frameA, frameB, type });
+            }
+        }
+    }
+
+    function liveAliens() { return aliens.filter(a => a.model.visible); }
+
+    // ---- Swarm motion -----------------------------------------------
+    //
+    // The classic invaders shuffle: every N ms, every alien moves one
+    // step in the current direction; if any alien hits an edge, the
+    // whole swarm drops a row and reverses.
+    //
+    // Step interval shrinks as fewer aliens remain (the iconic speedup).
+    // -----------------------------------------------------------------
+    let swarmDir = 1;       // 1 right, -1 left
+    let swarmStepDX = 8;
+    let swarmStepDY = 12;
+    let swarmTimer = 0;
+
+    function stepInterval() {
+        const alive = liveAliens().length;
+        // From ~700ms with full swarm down to ~70ms with one alien left.
+        const t = Math.max(0, Math.min(1, (alive - 1) / (ROWS * COLS - 1)));
+        return 70 + t * 630;
+    }
+
+    function stepSwarm() {
+        const alive = liveAliens();
+        if (!alive.length) return;
+
+        // Check whether any alive alien would breach the edge.
+        let breach = false;
+        for (const a of alive) {
+            const nx = a.model.x + swarmDir * swarmStepDX;
+            if (nx < 30 || nx > STAGE_W - 30) { breach = true; break; }
+        }
+        if (breach) {
+            swarmDir = -swarmDir;
+            for (const a of alive) a.model.y = a.model.y + swarmStepDY;
+        } else {
+            for (const a of alive) a.model.x = a.model.x + swarmDir * swarmStepDX;
+        }
+
+        // Toggle animation frames.
+        frameFlag ^= 1;
+        for (const a of alive) {
+            a.frameA.style.display = frameFlag ? 'none' : '';
+            a.frameB.style.display = frameFlag ? '' : 'none';
+        }
+
+        // Did any alien reach the player line? -> instant loss.
+        for (const a of alive) {
+            if (a.model.y >= PLAYER_Y - 30) { triggerGameOver(); return; }
+        }
+    }
+
+    // =================================================================
+    //  Bullets — pooled for cheap reuse.
+    // =================================================================
+    const bulletsG = document.getElementById('bullets');
+
+    function makeBullet(color) {
+        const r = document.createElementNS(SVG_NS, 'rect');
+        r.setAttribute('width', 3);
+        r.setAttribute('height', 10);
+        r.setAttribute('fill', color);
+        r.setAttribute('x', -1.5);
+        r.setAttribute('y', -5);
+        bulletsG.appendChild(r);
+        const model = { x: -100, y: -100, visible: false };
+        bindEntity(r, model);
+        return { model, el: r };
+    }
+
+    const PLAYER_BULLETS = 1;     // classic: one shot on screen at a time
+    const ALIEN_BULLETS = 3;
+    const playerBullets = Array.from({ length: PLAYER_BULLETS }, () => makeBullet('#b6ffce'));
+    const alienBullets  = Array.from({ length: ALIEN_BULLETS },  () => makeBullet('#ff77ff'));
+
+    // =================================================================
+    //  Shields — degradable barriers above the player.
+    //
+    //  Each shield is a 9x6 grid of "voxels"; hits remove a small
+    //  cluster of voxels around the impact.
+    // =================================================================
+    const shieldsG = document.getElementById('shields');
+    const SHIELD_COUNT = 4;
+    const SHIELD_W = 9, SHIELD_H = 6, VOX = 6;
+    let shields = [];
+
+    function buildShields() {
+        shieldsG.innerHTML = '';
+        shields = [];
+        const spacing = STAGE_W / (SHIELD_COUNT + 1);
+        for (let s = 0; s < SHIELD_COUNT; s++) {
+            const cx = spacing * (s + 1) - (SHIELD_W * VOX) / 2;
+            const cy = 470;
+            const voxels = [];
+            for (let r = 0; r < SHIELD_H; r++) {
+                for (let c = 0; c < SHIELD_W; c++) {
+                    // Carve a small notch at the bottom-center for the iconic shape.
+                    if (r >= SHIELD_H - 2 && c >= 3 && c <= 5) continue;
+                    const rect = document.createElementNS(SVG_NS, 'rect');
+                    rect.setAttribute('x', cx + c * VOX);
+                    rect.setAttribute('y', cy + r * VOX);
+                    rect.setAttribute('width', VOX);
+                    rect.setAttribute('height', VOX);
+                    rect.setAttribute('fill', '#2e8b57');
+                    shieldsG.appendChild(rect);
+                    voxels.push({ el: rect, x: cx + c * VOX + VOX/2, y: cy + r * VOX + VOX/2, alive: true });
+                }
+            }
+            shields.push(voxels);
+        }
+    }
+
+    function damageShieldAt(bx, by) {
+        let hit = false;
+        for (const voxels of shields) {
+            for (const v of voxels) {
+                if (!v.alive) continue;
+                if (Math.abs(v.x - bx) < 8 && Math.abs(v.y - by) < 8) {
+                    v.alive = false;
+                    v.el.remove();
+                    hit = true;
+                }
+            }
+        }
+        return hit;
+    }
+
+    // =================================================================
+    //  UFO — periodic bonus target, animated across the top with Koolic.
+    // =================================================================
+    const ufoEl = document.getElementById('ufo');
+    const ufo = { x: -50, y: 50, visible: false, points: 0 };
+    bindEntity(ufoEl, ufo);
+    let ufoActive = false;
+    let ufoCooldown = 12000;
+
+    function maybeSpawnUfo(dt) {
+        if (ufoActive || ufoCooldown > 0) { ufoCooldown -= dt; return; }
+        spawnUfo();
+    }
+
+    function spawnUfo() {
+        ufoActive = true;
+        ufo.visible = true;
+        ufo.points = [50, 100, 150, 200, 300][Math.floor(Math.random() * 5)];
+        const fromLeft = Math.random() < 0.5;
+        ufo.x = fromLeft ? -40 : STAGE_W + 40;
+        const target = fromLeft ? STAGE_W + 40 : -40;
+        // Use the animation library for the traversal.
+        $$(ufo).x.animate(ufo.x, target, 7000, 'linear').onDone(() => {
+            ufo.visible = false;
+            ufoActive = false;
+            ufoCooldown = 8000 + Math.random() * 8000;
+        });
+    }
+
+    function killUfo() {
+        ufo.visible = false;
+        ufoActive = false;
+        ufoCooldown = 10000 + Math.random() * 8000;
+    }
+
+    // =================================================================
+    //  Particle explosions
+    // =================================================================
+    const particlesG = document.getElementById('particles');
+
+    function explosion(x, y, color, count) {
+        count = count || 14;
+        for (let i = 0; i < count; i++) {
+            const r = document.createElementNS(SVG_NS, 'circle');
+            r.setAttribute('r', 2 + Math.random() * 2);
+            r.setAttribute('fill', i === 0 ? 'url(#explo)' : color);
+            r.setAttribute('cx', x);
+            r.setAttribute('cy', y);
+            particlesG.appendChild(r);
+
+            const ang = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+            const speed = 30 + Math.random() * 60;
+            const dx = Math.cos(ang) * speed;
+            const dy = Math.sin(ang) * speed;
+
+            const p = { x: 0, y: 0, alpha: 1 };
+            $$((px, py) => {
+                r.setAttribute('cx', x + px);
+                r.setAttribute('cy', y + py);
+            }).bind($$(p).x, $$(p).y);
+            $$((a) => { r.setAttribute('opacity', a); }).bind($$(p).alpha);
+
+            $$(p).x.animate(0, dx, 600, 'easeOutCubic');
+            $$(p).y.animate(0, dy, 600, 'easeOutCubic');
+            $$(p).alpha.animate(1, 0, 600, 'easeInQuad').onDone(() => r.remove());
+        }
+    }
+
+    // =================================================================
+    //  Input
+    // =================================================================
+    const keys = { left: false, right: false, fire: false };
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'ArrowLeft')  { keys.left = true;  e.preventDefault(); }
+        if (e.code === 'ArrowRight') { keys.right = true; e.preventDefault(); }
+        if (e.code === 'Space')      { keys.fire = true;  e.preventDefault(); }
+        if (e.code === 'KeyP')       togglePause();
+    });
+    document.addEventListener('keyup', (e) => {
+        if (e.code === 'ArrowLeft')  keys.left = false;
+        if (e.code === 'ArrowRight') keys.right = false;
+        if (e.code === 'Space')      keys.fire = false;
+    });
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+        if (game.phase === 'menu' || game.phase === 'gameover') startGame();
+        else if (game.phase === 'paused') resumeGame();
+        else if (game.phase === 'win') nextLevel();
+    });
+
+    function togglePause() {
+        if (game.phase === 'playing') {
+            game.phase = 'paused';
+            game.message = 'PAUSED';
+            game.hint = 'Press P or click resume';
+        } else if (game.phase === 'paused') {
+            resumeGame();
+        }
+    }
+    function resumeGame() {
+        game.phase = 'playing';
+        game.message = '';
+        game.hint = '';
+    }
+
+    // =================================================================
+    //  Game lifecycle
+    // =================================================================
+    function startGame() {
+        game.score = 0;
+        game.lives = 3;
+        game.level = 1;
+        beginLevel();
+    }
+
+    function beginLevel() {
+        spawnSwarm();
+        buildShields();
+        player.x = STAGE_W / 2;
+        player.invuln = 0;
+        playerBullets.forEach(b => { b.model.visible = false; });
+        alienBullets.forEach(b => { b.model.visible = false; });
+        ufoCooldown = 8000;
+        ufoActive = false;
+        ufo.visible = false;
+        swarmDir = 1;
+        swarmStepDX = 8;
+        swarmTimer = 0;
+        game.phase = 'playing';
+        game.message = '';
+        game.hint = '';
+    }
+
+    function nextLevel() {
+        game.level = game.level + 1;
+        beginLevel();
+    }
+
+    function triggerGameOver() {
+        if (game.phase !== 'playing') return;
+        game.phase = 'gameover';
+        game.message = 'GAME OVER';
+        game.hint = `Final score: ${game.score}`;
+    }
+
+    function triggerWin() {
+        game.phase = 'win';
+        game.message = `WAVE ${game.level} CLEARED`;
+        game.hint = 'Aliens regroup. Press space, click, or any key to continue.';
+    }
+
+    // =================================================================
+    //  Main loop
+    // =================================================================
+    let lastTime = 0;
+    let alienFireTimer = 0;
+    function loop(ts) {
+        const dt = lastTime ? Math.min(50, ts - lastTime) : 16;
+        lastTime = ts;
+
+        if (game.phase === 'playing') {
+            // --- player movement ---
+            const speed = 240;     // px/s
+            if (keys.left)  player.x = Math.max(28,  player.x - speed * dt / 1000);
+            if (keys.right) player.x = Math.min(STAGE_W - 28, player.x + speed * dt / 1000);
+            if (player.invuln > 0) player.invuln = Math.max(0, player.invuln - dt / 1000);
+
+            // --- player fire ---
+            if (keys.fire) {
+                const free = playerBullets.find(b => !b.model.visible);
+                if (free) {
+                    free.model.x = player.x;
+                    free.model.y = PLAYER_Y - 18;
+                    free.model.visible = true;
+                    keys.fire = false;   // single-shot per press
+                }
+            }
+
+            // --- bullets travel ---
+            for (const b of playerBullets) {
+                if (!b.model.visible) continue;
+                b.model.y = b.model.y - 480 * dt / 1000;
+                if (b.model.y < -20) b.model.visible = false;
+                else if (damageShieldAt(b.model.x, b.model.y)) b.model.visible = false;
+            }
+            for (const b of alienBullets) {
+                if (!b.model.visible) continue;
+                b.model.y = b.model.y + 220 * dt / 1000;
+                if (b.model.y > STAGE_H) b.model.visible = false;
+                else if (damageShieldAt(b.model.x, b.model.y)) b.model.visible = false;
+            }
+
+            // --- swarm step ---
+            swarmTimer += dt;
+            if (swarmTimer >= stepInterval()) {
+                stepSwarm();
+                swarmTimer = 0;
+            }
+
+            // --- alien fire ---
+            alienFireTimer -= dt;
+            if (alienFireTimer <= 0) {
+                fireFromSwarm();
+                // Faster fire as fewer aliens remain.
+                const alive = liveAliens().length;
+                alienFireTimer = 300 + 1400 * (alive / (ROWS * COLS));
+            }
+
+            // --- UFO ---
+            maybeSpawnUfo(dt);
+
+            // --- collisions ---
+            checkCollisions();
+
+            // --- win check ---
+            if (!liveAliens().length) triggerWin();
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    function fireFromSwarm() {
+        const alive = liveAliens();
+        if (!alive.length) return;
+        // Prefer bottom-most alien in a randomly picked column for fairness.
+        const col = alive[Math.floor(Math.random() * alive.length)].model.col;
+        const inCol = alive.filter(a => a.model.col === col);
+        if (!inCol.length) return;
+        const shooter = inCol.reduce((m, a) => a.model.y > m.model.y ? a : m, inCol[0]);
+        const free = alienBullets.find(b => !b.model.visible);
+        if (!free) return;
+        free.model.x = shooter.model.x;
+        free.model.y = shooter.model.y + 16;
+        free.model.visible = true;
+    }
+
+    function checkCollisions() {
+        // Player bullet vs alien
+        for (const b of playerBullets) {
+            if (!b.model.visible) continue;
+            for (const a of aliens) {
+                if (!a.model.visible) continue;
+                if (Math.abs(a.model.x - b.model.x) < 14 &&
+                    Math.abs(a.model.y - b.model.y) < 12) {
+                    a.model.visible = false;
+                    b.model.visible = false;
+                    game.score = game.score + a.model.points;
+                    explosion(a.model.x, a.model.y, a.type.color, 14);
+                    break;
+                }
+            }
+        }
+        // Player bullet vs UFO
+        for (const b of playerBullets) {
+            if (!b.model.visible || !ufo.visible) continue;
+            if (Math.abs(ufo.x - b.model.x) < 30 && Math.abs(ufo.y - b.model.y) < 14) {
+                b.model.visible = false;
+                game.score = game.score + ufo.points;
+                explosion(ufo.x, ufo.y, '#ff5fff', 24);
+                killUfo();
+            }
+        }
+        // Alien bullet vs player
+        if (player.invuln === 0) {
+            for (const b of alienBullets) {
+                if (!b.model.visible) continue;
+                if (Math.abs(b.model.x - player.x) < 18 &&
+                    Math.abs(b.model.y - PLAYER_Y) < 16) {
+                    b.model.visible = false;
+                    explosion(player.x, PLAYER_Y - 4, '#b6ffce', 22);
+                    game.lives = game.lives - 1;
+                    if (game.lives <= 0) { triggerGameOver(); return; }
+                    player.invuln = 1.6;
+                    break;
+                }
+            }
+        }
+    }
+
+    // ---- bootstrap --------------------------------------------------
+    spawnSwarm();
+    buildShields();
+    requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
