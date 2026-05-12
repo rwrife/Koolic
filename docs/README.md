@@ -48,6 +48,7 @@ no build step, no dependencies, just open them in a browser:
 | 08 | [`08-animation-bounce.html`](../examples/08-animation-bounce.html) | Bouncing ball with `easeOutBounce` |
 | 09 | [`09-animation-segmented.html`](../examples/09-animation-segmented.html) | Segmented (piecewise) easing |
 | 10 | [`10-advanced-form.html`](../examples/10-advanced-form.html) | **Checkout-style form** — validation, computed totals, JSON submit |
+| —  | [`npm-usage/`](../examples/npm-usage) | **Install from npm + use in browser and Node** |
 
 ## Mental model in 30 seconds
 

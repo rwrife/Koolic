@@ -1,0 +1,12 @@
+{
+  "name": "koolic-npm-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal example that pulls Koolic from npm and uses it in both a browser and a Node script.",
+  "scripts": {
+    "node-demo": "node node-example.js"
+  },
+  "dependencies": {
+    "koolic": "file:../.."
+  }
+}

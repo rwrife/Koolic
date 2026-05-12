@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Koolic from npm — browser example</title>
+    <!--
+        Koolic was installed via `npm install`, which dropped it into
+        ./node_modules/koolic/. Just point a <script> tag at it.
+    -->
+    <script src="./node_modules/koolic/js/koolic.js"></script>
+    <script src="./node_modules/koolic/js/koolic.animate.js"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 540px; margin: 2em auto; padding: 0 1em; }
+        input { padding: 6px 8px; font-size: 1em; width: 100%; box-sizing: border-box; }
+        #box {
+            position: relative; width: 60px; height: 60px;
+            background: #4a90e2; border-radius: 6px;
+            margin-top: 1.5em;
+        }
+        button { padding: 8px 14px; font-size: 1em; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Koolic, served from <code>node_modules</code></h1>
+    <p>Type below — the greeting and the page title update live.</p>
+
+    <input id="name" placeholder="Your name" />
+    <p>Hello, <strong id="greeting">…</strong>!</p>
+
+    <button id="animate">Animate the box</button>
+    <div id="box"></div>
+
+    <script>
+        // Same API as the script-tag version: $$ is on window.
+        const state = { name: '', x: 0 };
+
+        $$('#name').bind($$(state).name);
+        $$('#greeting').bind($$(state).name);
+
+        $$(name => { document.title = name ? `Hi ${name}` : 'Koolic from npm'; })
+            .bind($$(state).name);
+
+        $$('#box').bind($$(state).x, 'left');
+        document.getElementById('animate').onclick = () => {
+            state.x = 0;
+            $$(state).x.animate(0, 360, 1200, 'easeOutBounce');
+        };
+    </script>
+</body>
+</html>

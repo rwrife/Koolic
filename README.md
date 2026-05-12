@@ -133,6 +133,7 @@ Open these directly in a browser — no server required.
 | [`examples/08-animation-bounce.html`](examples/08-animation-bounce.html) | Bouncing ball with `easeOutBounce` |
 | [`examples/09-animation-segmented.html`](examples/09-animation-segmented.html) | Segmented (piecewise) easing |
 | [`examples/10-advanced-form.html`](examples/10-advanced-form.html) | **Checkout-style form** — multi-field validation, computed totals, JSON payload for REST submit |
+| [`examples/npm-usage/`](examples/npm-usage) | **Install Koolic from npm** and use it in a browser page + a Node script |
 
 ## Documentation
 
