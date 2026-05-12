@@ -7,6 +7,6 @@
     "node-demo": "node node-example.js"
   },
   "dependencies": {
-    "koolic": "file:../.."
+    "koolic": "^2.0.0"
   }
 }
